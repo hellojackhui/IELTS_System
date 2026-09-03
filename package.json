@@ -1,0 +1,28 @@
+{
+  "name": "ielts-vocab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal IELTS vocabulary trainer — Expo app + web + sync server, one codebase.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build:core && npm run build -w @ielts/server",
+    "build:core": "npm run build -w @ielts/core",
+    "dev:core": "npm run dev -w @ielts/core",
+    "server": "npm run dev -w @ielts/server",
+    "start:prod": "node apps/server/dist/server.mjs",
+    "db:push": "npm run db:push -w @ielts/server",
+    "mobile": "npm run start -w @ielts/mobile",
+    "web": "npm run web -w @ielts/mobile"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

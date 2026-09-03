@@ -1,0 +1,19 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    image: ielts-server
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      # CHANGE THIS before exposing the server anywhere real.
+      JWT_SECRET: "change-me-to-a-long-random-string"
+      PORT: "8787"
+      DB_PATH: "/data/ielts.db"
+    volumes:
+      - ielts-data:/data
+
+volumes:
+  ielts-data:

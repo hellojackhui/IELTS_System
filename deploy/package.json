@@ -1,0 +1,9 @@
+{
+  "name": "ielts-server-runtime",
+  "private": true,
+  "type": "module",
+  "description": "Minimal runtime for the bundled sync server. server.mjs bundles everything except the native better-sqlite3, which is the only dependency installed here.",
+  "dependencies": {
+    "better-sqlite3": "^11.5.0"
+  }
+}

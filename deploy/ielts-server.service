@@ -1,0 +1,21 @@
+[Unit]
+Description=IELTS vocab sync server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ielts-server
+ExecStart=/usr/bin/node /opt/ielts-server/server.mjs
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PORT=8787
+Environment=DB_PATH=/opt/ielts-server/data/ielts.db
+# Put JWT_SECRET (and any overrides) in /opt/ielts-server/.env
+EnvironmentFile=-/opt/ielts-server/.env
+# Run as a non-privileged user; create one with: sudo useradd -r -s /usr/sbin/nologin ielts
+User=ielts
+Group=ielts
+
+[Install]
+WantedBy=multi-user.target
