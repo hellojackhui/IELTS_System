@@ -4,7 +4,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius } from '../theme';
 
-export type TabKey = 'memory' | 'ai' | 'listening' | 'profile';
+export type TabKey = 'memory' | 'ai' | 'listening' | 'exam' | 'profile';
 
 export interface TabItem {
   key: TabKey;

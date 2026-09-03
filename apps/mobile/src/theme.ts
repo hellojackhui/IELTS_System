@@ -32,6 +32,7 @@ export const boards = {
   memory: { accent: '#2D6A7A', tint: '#EAF1F3', icon: 'book' as const },
   ai: { accent: '#5B57A6', tint: '#ECEBF6', icon: 'sparkles' as const },
   listening: { accent: '#B4703A', tint: '#F6EEE4', icon: 'headset' as const },
+  exam: { accent: '#A6505E', tint: '#F5E9EC', icon: 'document-text' as const },
   profile: { accent: '#5A6472', tint: '#ECEEF1', icon: 'person' as const },
 };
 
