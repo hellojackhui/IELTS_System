@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ActivityCard, ScreenHeader, StatRow } from '../components/ui';
 import { getRewards, type Rewards } from '../rewards';
 import { getStats, type Stats } from '../store';
+import { wordbookCount } from '../wordbook';
 import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
 
 const A = boards.memory.accent;
@@ -12,17 +13,21 @@ const A = boards.memory.accent;
 export function MemoryBoard({
   onStart,
   onReview,
+  onOpenWordbook,
   reloadToken,
 }: {
   onStart: (mode: QuizMode) => void;
   onReview: () => void;
+  onOpenWordbook: () => void;
   reloadToken: number;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [rewards, setRewards] = useState<Rewards | null>(null);
+  const [wbCount, setWbCount] = useState(0);
   const refresh = useCallback(() => {
     getStats().then(setStats);
     getRewards().then(setRewards);
+    wordbookCount().then(setWbCount);
   }, []);
 
   useEffect(() => {
@@ -80,6 +85,14 @@ export function MemoryBoard({
         desc="看英文例句，选出空格处正确的词"
         accent={A}
         onPress={() => onStart('choice')}
+      />
+      <ActivityCard
+        icon="bookmark-outline"
+        title="生词本"
+        desc={wbCount > 0 ? `${wbCount} 个收藏的生词` : '阅读时点生词即可收藏到这里'}
+        accent={A}
+        onPress={onOpenWordbook}
+        badge={wbCount > 0 ? String(wbCount) : undefined}
       />
     </ScrollView>
   );

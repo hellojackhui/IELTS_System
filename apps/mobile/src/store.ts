@@ -1,5 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { newProgress, schedule, type ApiClient, type WordProgress } from '@ielts/core';
+import { clearConversations } from './chat';
+import { resetDocsWatermark, syncDocs } from './docsync';
+import { clearRewards } from './rewards';
+import { clearWordbook } from './wordbook';
 
 const PROGRESS_KEY = 'progress:v1';
 const SYNC_KEY = 'lastSync:v1';
@@ -58,11 +62,23 @@ export async function syncNow(client: ApiClient): Promise<{ pushed: number; pull
   await persist();
   await AsyncStorage.setItem(SYNC_KEY, String(serverTime));
 
-  return { pushed: changes.length, pulled: progress.length };
+  // Also sync conversations / rewards / wordbook via the generic doc store.
+  let docs = { pushed: 0, pulled: 0 };
+  try {
+    docs = await syncDocs(client);
+  } catch {
+    // progress sync already succeeded; don't fail the whole sync on docs
+  }
+
+  return {
+    pushed: changes.length + docs.pushed,
+    pulled: progress.length + docs.pulled,
+  };
 }
 
-/** Wipe the local sync watermark and progress — used on sign-out to avoid cross-account bleed. */
+/** Wipe ALL local data — used on sign-out to avoid cross-account bleed. */
 export async function resetLocal(): Promise<void> {
   cache = {};
   await AsyncStorage.multiRemove([PROGRESS_KEY, SYNC_KEY]);
+  await Promise.all([clearConversations(), clearRewards(), clearWordbook(), resetDocsWatermark()]);
 }

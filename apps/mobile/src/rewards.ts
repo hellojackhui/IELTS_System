@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { SyncDoc } from '@ielts/core';
 
 export interface Rewards {
   /** Last active local date, YYYY-MM-DD. */
@@ -11,10 +12,13 @@ export interface Rewards {
   points: number;
   /** Total distinct active days. */
   days: number;
+  /** Epoch ms of last change, for sync. */
+  updatedAt: number;
 }
 
 const KEY = 'rewards:v1';
-const EMPTY: Rewards = { lastActive: '', streak: 0, best: 0, points: 0, days: 0 };
+const COLLECTION = 'rewards';
+const EMPTY: Rewards = { lastActive: '', streak: 0, best: 0, points: 0, days: 0, updatedAt: 0 };
 
 function dateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -52,10 +56,32 @@ export async function recordActivity(pointsEarned: number): Promise<Rewards> {
     r.lastActive = today;
   }
   r.points += pointsEarned;
+  r.updatedAt = Date.now();
 
   cache = r;
   await AsyncStorage.setItem(KEY, JSON.stringify(r)).catch(() => {});
   return r;
+}
+
+export async function clearRewards(): Promise<void> {
+  cache = { ...EMPTY };
+  await AsyncStorage.removeItem(KEY);
+}
+
+// --- sync ---
+export async function collectRewardsDoc(since: number): Promise<SyncDoc[]> {
+  const r = await getRewards();
+  if (r.updatedAt <= since) return [];
+  return [{ collection: COLLECTION, docId: 'self', data: r, updatedAt: r.updatedAt }];
+}
+
+export async function applyRewardsDoc(doc: SyncDoc | undefined): Promise<void> {
+  if (!doc) return;
+  const local = await getRewards();
+  if (doc.updatedAt > local.updatedAt) {
+    cache = { ...EMPTY, ...(doc.data as Rewards) };
+    await AsyncStorage.setItem(KEY, JSON.stringify(cache)).catch(() => {});
+  }
 }
 
 export interface Badge {

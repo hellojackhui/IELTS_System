@@ -13,7 +13,9 @@ import { ListeningBoard } from './src/screens/ListeningBoard';
 import { MemoryBoard } from './src/screens/MemoryBoard';
 import { ProfileBoard } from './src/screens/ProfileBoard';
 import { Quiz } from './src/screens/Quiz';
+import { ReadingExam } from './src/screens/ReadingExam';
 import { WritingExam } from './src/screens/WritingExam';
+import { Wordbook } from './src/screens/Wordbook';
 import { boards, colors, useNative, WIDE_BREAKPOINT } from './src/theme';
 
 // On web, make the mount point fill the viewport so flex:1 layouts expand.
@@ -33,11 +35,16 @@ const TABS: TabItem[] = [
   { key: 'profile', label: '我的', icon: 'person', accent: boards.profile.accent },
 ];
 
+type Overlay =
+  | { kind: 'quiz'; mode: QuizMode; review?: boolean }
+  | { kind: 'writing' }
+  | { kind: 'reading'; genre: string }
+  | { kind: 'wordbook' };
+
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const [tab, setTab] = useState<TabKey>('memory');
-  const [quiz, setQuiz] = useState<{ mode: QuizMode; review?: boolean } | null>(null);
-  const [examOpen, setExamOpen] = useState(false);
+  const [overlay, setOverlay] = useState<Overlay | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
   const { width } = useWindowDimensions();
@@ -48,8 +55,9 @@ export default function App() {
     <View style={styles.body}>
       <Pane visible={tab === 'memory'}>
         <MemoryBoard
-          onStart={(mode) => setQuiz({ mode })}
-          onReview={() => setQuiz({ mode: 'spelling', review: true })}
+          onStart={(mode) => setOverlay({ kind: 'quiz', mode })}
+          onReview={() => setOverlay({ kind: 'quiz', mode: 'spelling', review: true })}
+          onOpenWordbook={() => setOverlay({ kind: 'wordbook' })}
           reloadToken={reloadToken}
         />
       </Pane>
@@ -57,10 +65,13 @@ export default function App() {
         <AIBoard />
       </Pane>
       <Pane visible={tab === 'listening'}>
-        <ListeningBoard onStart={(mode) => setQuiz({ mode })} />
+        <ListeningBoard onStart={(mode) => setOverlay({ kind: 'quiz', mode })} />
       </Pane>
       <Pane visible={tab === 'exam'}>
-        <ExamBoard onStartWriting={() => setExamOpen(true)} />
+        <ExamBoard
+          onStartWriting={() => setOverlay({ kind: 'writing' })}
+          onStartReading={(genre) => setOverlay({ kind: 'reading', genre })}
+        />
       </Pane>
       <Pane visible={tab === 'profile'}>
         <ProfileBoard reloadToken={reloadToken} />
@@ -86,21 +97,11 @@ export default function App() {
             </>
           )}
 
-          {quiz && (
-            <QuizHost
-              mode={quiz.mode}
-              review={quiz.review}
+          {overlay && (
+            <OverlayHost
+              overlay={overlay}
               onClose={() => {
-                setQuiz(null);
-                setReloadToken((t) => t + 1);
-              }}
-            />
-          )}
-
-          {examOpen && (
-            <ExamHost
-              onClose={() => {
-                setExamOpen(false);
+                setOverlay(null);
                 setReloadToken((t) => t + 1);
               }}
             />
@@ -118,16 +119,8 @@ function Pane({ visible, children }: { visible: boolean; children: React.ReactNo
   return <View style={[styles.pane, !visible && styles.hidden]}>{children}</View>;
 }
 
-/** Full-screen quiz overlay with enter/exit animation. */
-function QuizHost({
-  mode,
-  review,
-  onClose,
-}: {
-  mode: QuizMode;
-  review?: boolean;
-  onClose: () => void;
-}) {
+/** Full-screen overlay for the quiz / writing / reading / wordbook flows. */
+function OverlayHost({ overlay, onClose }: { overlay: Overlay; onClose: () => void }) {
   const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -145,32 +138,10 @@ function QuizHost({
   return (
     <Animated.View style={[styles.overlay, { opacity: anim, transform: [{ translateY }] }]}>
       <SafeAreaView style={styles.flex} edges={['top']}>
-        <Quiz mode={mode} review={review} onExit={close} />
-      </SafeAreaView>
-    </Animated.View>
-  );
-}
-
-/** Full-screen writing-exam overlay with enter/exit animation. */
-function ExamHost({ onClose }: { onClose: () => void }) {
-  const anim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(anim, { toValue: 1, duration: 260, useNativeDriver: useNative }).start();
-  }, [anim]);
-
-  const close = () => {
-    Animated.timing(anim, { toValue: 0, duration: 190, useNativeDriver: useNative }).start(({ finished }) => {
-      if (finished) onClose();
-    });
-  };
-
-  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [28, 0] });
-
-  return (
-    <Animated.View style={[styles.overlay, { opacity: anim, transform: [{ translateY }] }]}>
-      <SafeAreaView style={styles.flex} edges={['top']}>
-        <WritingExam onExit={close} />
+        {overlay.kind === 'quiz' && <Quiz mode={overlay.mode} review={overlay.review} onExit={close} />}
+        {overlay.kind === 'writing' && <WritingExam onExit={close} />}
+        {overlay.kind === 'reading' && <ReadingExam genre={overlay.genre} onExit={close} />}
+        {overlay.kind === 'wordbook' && <Wordbook onExit={close} />}
       </SafeAreaView>
     </Animated.View>
   );

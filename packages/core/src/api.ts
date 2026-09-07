@@ -1,5 +1,7 @@
 import type {
   AuthResponse,
+  SyncDoc,
+  SyncDocsPullResponse,
   SyncPullResponse,
   SyncPushResponse,
   WordProgress,
@@ -66,6 +68,17 @@ export class ApiClient {
 
   push(changes: WordProgress[]): Promise<SyncPushResponse> {
     return this.request('/sync/push', {
+      method: 'POST',
+      body: JSON.stringify({ changes }),
+    });
+  }
+
+  pullDocs(since = 0): Promise<SyncDocsPullResponse> {
+    return this.request(`/sync/docs/pull?since=${since}`);
+  }
+
+  pushDocs(changes: SyncDoc[]): Promise<SyncPushResponse> {
+    return this.request('/sync/docs/push', {
       method: 'POST',
       body: JSON.stringify({ changes }),
     });

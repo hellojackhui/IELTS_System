@@ -10,7 +10,7 @@ import { getStats, type Stats } from '../store';
 import { boards, colors, space } from '../theme';
 
 const A = boards.profile.accent;
-const EMPTY_REWARDS: Rewards = { lastActive: '', streak: 0, best: 0, points: 0, days: 0 };
+const EMPTY_REWARDS: Rewards = { lastActive: '', streak: 0, best: 0, points: 0, days: 0, updatedAt: 0 };
 
 export function ProfileBoard({ reloadToken }: { reloadToken: number }) {
   const [stats, setStats] = useState<Stats | null>(null);

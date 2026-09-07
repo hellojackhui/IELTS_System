@@ -75,6 +75,25 @@ async function completeJson<T>(prompt: string, temperature: number): Promise<T> 
 
 aiRoutes.use('*', authMiddleware);
 
+/** Define a word (Chinese meaning + an English example) for the 生词本. */
+aiRoutes.post('/define', async (c) => {
+  if (!API_KEY) return c.json({ error: 'AI 未配置（缺少 AI_API_KEY）' }, 503);
+  const { word, context } = await c.req.json().catch(() => ({}));
+  if (typeof word !== 'string' || !word) return c.json({ error: 'bad request' }, 400);
+
+  const prompt =
+    `解释英语单词 "${word}"${context ? `（出现在句子：${context}）` : ''}。` +
+    `给出简洁的中文释义（含词性，如 n./v./adj.）和一个雅思难度的英文例句。` +
+    `只返回 JSON，不要 markdown：{"definition":"<中文释义>","example":"<英文例句>"}`;
+
+  try {
+    const parsed = await completeJson<{ definition?: string; example?: string }>(prompt, 0.5);
+    return c.json({ definition: String(parsed.definition ?? '').trim(), example: String(parsed.example ?? '').trim() });
+  } catch (e) {
+    return c.json({ error: String((e as Error).message) }, 502);
+  }
+});
+
 /** Generate a single cloze (fill-in-the-blank) example sentence for a word. */
 aiRoutes.post('/cloze', async (c) => {
   if (!API_KEY) return c.json({ error: 'AI 未配置（缺少 AI_API_KEY）' }, 503);
@@ -102,6 +121,43 @@ aiRoutes.post('/cloze', async (c) => {
   }
   if (!en) return c.json({ error: '生成为空' }, 502);
   return c.json({ en, zh });
+});
+
+const GENRE_LABELS: Record<string, string> = {
+  news: '新闻报道',
+  magazine: '杂志专题',
+  person: '人物介绍',
+  science: '科普',
+  opinion: '观点评论',
+};
+
+/** Generate an original IELTS-style reading passage + questions in a given genre. */
+aiRoutes.post('/reading', async (c) => {
+  if (!API_KEY) return c.json({ error: 'AI 未配置（缺少 AI_API_KEY）' }, 503);
+  const body = await c.req.json().catch(() => ({}));
+  const keys = Object.keys(GENRE_LABELS);
+  const genre = keys.includes(body?.genre) ? body.genre : keys[Math.floor(Math.random() * keys.length)];
+  const label = GENRE_LABELS[genre];
+
+  const prompt =
+    `写一篇**原创**的雅思阅读风格英文文章，体裁：${label}。约 300 词，内容自拟、真实感强，但不得抄袭任何现实中已发表的文章。` +
+    `然后基于文章出 5 道题：混合 True/False/Not Given 判断题与四选一选择题，考查细节和主旨。` +
+    `判断题的 answer 为 "True"/"False"/"Not Given" 之一；选择题给 4 个 options，answer 为正确项的 0-based 序号（数字）。` +
+    `每题附简短中文解析。只返回 JSON，不要 markdown：` +
+    `{"title":"...","passage":"...","questions":[` +
+    `{"type":"tfng","q":"...","answer":"True","explain":"..."},` +
+    `{"type":"mcq","q":"...","options":["..","..","..",".."],"answer":0,"explain":"..."}` +
+    `]}`;
+
+  try {
+    const parsed = await completeJson<{ title?: string; passage?: string; questions?: unknown[] }>(prompt, 0.8);
+    if (!parsed?.passage || !Array.isArray(parsed.questions)) {
+      return c.json({ error: '生成内容不完整' }, 502);
+    }
+    return c.json({ ...parsed, genre, genreLabel: label });
+  } catch (e) {
+    return c.json({ error: String((e as Error).message) }, 502);
+  }
 });
 
 /** Grade an IELTS Writing essay against the official band descriptors. */

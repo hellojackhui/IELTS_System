@@ -64,3 +64,17 @@ export interface SyncPushResponse {
   serverTime: number;
   applied: number;
 }
+
+/** A generic synced document (conversations / rewards / wordbook). */
+export interface SyncDoc<T = unknown> {
+  collection: string;
+  docId: string;
+  data: T;
+  updatedAt: number;
+  deleted?: boolean;
+}
+
+export interface SyncDocsPullResponse {
+  serverTime: number;
+  docs: SyncDoc[];
+}

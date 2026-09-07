@@ -23,3 +23,17 @@ export const progress = sqliteTable(
   },
   (t) => ({ pk: primaryKey({ columns: [t.userId, t.wordId] }) }),
 );
+
+/** Generic per-user document store for syncing conversations / rewards / wordbook. */
+export const documents = sqliteTable(
+  'documents',
+  {
+    userId: text('user_id').notNull(),
+    collection: text('collection').notNull(),
+    docId: text('doc_id').notNull(),
+    data: text('data').notNull(),
+    updatedAt: integer('updated_at').notNull(),
+    deleted: integer('deleted').notNull().default(0),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.collection, t.docId] }) }),
+);

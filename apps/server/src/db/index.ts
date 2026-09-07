@@ -32,5 +32,15 @@ export function ensureSchema(): void {
       PRIMARY KEY (user_id, word_id)
     );
     CREATE INDEX IF NOT EXISTS idx_progress_sync ON progress (user_id, updated_at);
+    CREATE TABLE IF NOT EXISTS documents (
+      user_id TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      doc_id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      updated_at INTEGER NOT NULL,
+      deleted INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, collection, doc_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_documents_sync ON documents (user_id, updated_at);
   `);
 }
