@@ -3,6 +3,13 @@ import { promisify } from 'node:util';
 import type { Context, Next } from 'hono';
 import { sign, verify } from 'hono/jwt';
 
+// The authenticated user id set by authMiddleware, available via c.get('userId').
+declare module 'hono' {
+  interface ContextVariableMap {
+    userId: string;
+  }
+}
+
 const SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me-in-production';
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 90; // 90 days
 

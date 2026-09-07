@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { Splash } from './src/components/Splash';
 import { SideBar } from './src/components/SideBar';
 import { TabBar, type TabItem, type TabKey } from './src/components/TabBar';
@@ -81,6 +82,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <ErrorBoundary>
       <AuthProvider>
         <SafeAreaView style={styles.root} edges={['top']}>
           <StatusBar style="dark" />
@@ -110,6 +112,7 @@ export default function App() {
           {!splashDone && <Splash onDone={() => setSplashDone(true)} />}
         </SafeAreaView>
       </AuthProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
