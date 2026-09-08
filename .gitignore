@@ -7,4 +7,5 @@ web-build/
 apps/server/.env
 apps/server/*.db
 apps/server/*.db-*
+.env
 .env.local
