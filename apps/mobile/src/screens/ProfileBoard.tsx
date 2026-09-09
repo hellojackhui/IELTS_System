@@ -62,6 +62,8 @@ export function ProfileBoard({ reloadToken }: { reloadToken: number }) {
         <Divider />
         <Row icon="server-outline" label="同步服务" value={API_URL.replace(/^https?:\/\//, '')} />
         <Divider />
+        <Row icon="chatbubbles-outline" label="例句" value="Tatoeba · CC-BY" />
+        <Divider />
         <Row icon="pricetag-outline" label="版本" value="0.1.0" />
       </Card>
     </ScrollView>

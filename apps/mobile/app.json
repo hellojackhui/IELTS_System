@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "IELTS 词汇",
+    "name": "雅思私教",
     "slug": "ielts-vocab",
     "scheme": "ieltsvocab",
     "version": "1.0.0",
@@ -8,7 +8,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hellojackhui.ieltstutor"
     },
     "android": {
       "adaptiveIcon": {

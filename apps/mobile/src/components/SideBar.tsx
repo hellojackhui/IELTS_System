@@ -18,9 +18,9 @@ export function SideBar({
     <View style={styles.rail}>
       <View style={styles.brand}>
         <View style={styles.mark}>
-          <Text style={styles.markText}>词</Text>
+          <Text style={styles.markText}>私</Text>
         </View>
-        <Text style={styles.brandName}>IELTS 词汇</Text>
+        <Text style={styles.brandName}>雅思私教</Text>
       </View>
 
       <View style={styles.nav}>

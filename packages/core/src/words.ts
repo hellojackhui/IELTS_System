@@ -1,5 +1,8 @@
+import { EXAMPLES, type WordExample } from './data/examples';
 import { RAW_WORDS } from './data/words';
 import type { Word } from './types';
+
+export type { WordExample };
 
 const POS_RE = /^((?:n|v|adj|adv|prep|conj|pron|det|num|int|abbr|aux|vi|vt)\.)/;
 
@@ -24,6 +27,11 @@ const BY_ID = new Map<string, Word>(WORDS.map((w) => [w.id, w]));
 
 export function getWord(id: string): Word | undefined {
   return BY_ID.get(id);
+}
+
+/** A natural example sentence for a word (from Tatoeba, CC-BY), if available. */
+export function getExample(id: string): WordExample | undefined {
+  return EXAMPLES[id];
 }
 
 /** Words grouped by part of speech, used to build plausible distractors. */

@@ -34,11 +34,11 @@ export function Splash({ onDone }: { onDone: () => void }) {
     <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]} pointerEvents="none">
       <Animated.View style={{ opacity: markOpacity, transform: [{ scale: markScale }] }}>
         <View style={styles.mark}>
-          <Text style={styles.markText}>词</Text>
+          <Text style={styles.markText}>私</Text>
         </View>
       </Animated.View>
       <Animated.View style={{ opacity: textOpacity, alignItems: 'center' }}>
-        <Text style={styles.title}>IELTS 词汇</Text>
+        <Text style={styles.title}>雅思私教</Text>
         <Text style={styles.tagline}>记忆 · 听力 · AI 助手</Text>
       </Animated.View>
     </Animated.View>

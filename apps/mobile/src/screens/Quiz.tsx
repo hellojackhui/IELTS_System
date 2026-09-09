@@ -19,6 +19,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { getExample } from '@ielts/core';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { getCloze, type Cloze } from '../cloze';
@@ -286,6 +287,13 @@ export function Quiz({
             </View>
           )}
 
+          {answered !== null && mode !== 'choice' && getExample(q!.word.id) && (
+            <View style={styles.exampleBox}>
+              <Text style={styles.exampleText}>{getExample(q!.word.id)!.en}</Text>
+              <Text style={styles.exampleSrc}>例句 · Tatoeba (CC-BY)</Text>
+            </View>
+          )}
+
           {answered !== null && (
             <Pressable style={[styles.nextBtn, { backgroundColor: accent }]} onPress={next}>
               <Text style={styles.nextText}>{index + 1 >= questions.length ? '查看结果' : '下一题'}</Text>
@@ -415,6 +423,9 @@ const styles = StyleSheet.create({
   optCorrect: { borderColor: colors.correct, backgroundColor: colors.correctBg },
   optWrong: { borderColor: colors.wrong, backgroundColor: colors.wrongBg },
   optionText: { fontSize: 16, color: colors.text, fontWeight: '500' },
+  exampleBox: { backgroundColor: colors.bg, borderRadius: radius.md, padding: 12, gap: 4 },
+  exampleText: { fontSize: 15, color: colors.text, lineHeight: 22, fontStyle: 'italic' },
+  exampleSrc: { fontSize: 11, color: colors.textMuted },
   feedback: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: radius.md, padding: 12 },
   fbText: { flex: 1, fontSize: 14, lineHeight: 20 },
   fbCorrect: { backgroundColor: colors.correctBg },
