@@ -80,10 +80,12 @@ EOF
 
     stage('Health check') {
       steps {
+        // Jenkins runs in its own container, so its localhost is NOT the host.
+        // Probe from INSIDE the server container instead (node has global fetch).
         sh '''
           for i in $(seq 1 30); do
-            if curl -fsS "http://localhost:$PORT/health" >/dev/null; then
-              echo "health OK"; exit 0
+            if $COMPOSE exec -T server node -e 'fetch("http://localhost:8787/health").then(r=>r.ok?r.text():Promise.reject()).then(t=>console.log("health:",t)).catch(()=>process.exit(1))'; then
+              echo "deploy OK"; exit 0
             fi
             sleep 2
           done

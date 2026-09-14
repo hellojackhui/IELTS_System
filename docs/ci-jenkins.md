@@ -31,17 +31,22 @@ docker compose ls                       # 看现有 project 名
 
 > 稳妥做法：备份好之后，第一次先在 Jenkins 点「Build Now」，部署完立刻验证 `http://<ECS_IP>:8787/health` 的 `words` 和你的账号还在，再开 webhook 自动触发。
 
-## 1. 让 Jenkins 能用 docker（在 ECS 上）
+## 1. 让 Jenkins 能用 docker（Jenkins 本身是容器）
+
+本环境 Jenkins 以容器方式运行（`/root/workspace/jenkins/`）。做 **docker-outside-of-docker**：把宿主机 `docker.sock` 挂进容器 + 容器里装 docker CLI，容器以 root 运行即可读写 socket。已落地：
+
+- `jenkins/docker-compose.yml` 里挂了 `/var/run/docker.sock:/var/run/docker.sock`、`user: root`
+- 自定义镜像 `jenkins/Dockerfile`（`FROM jenkins/jenkins:lts-jdk21`，走阿里云镜像装 `docker-ce-cli` + `docker-compose-plugin`）
+- 重建：`cd /root/workspace/jenkins && unset COMPOSE_PROJECT_NAME && docker compose up -d --build`
+
+验证：
 
 ```bash
-sudo usermod -aG docker jenkins      # 把 jenkins 用户加进 docker 组
-sudo systemctl restart jenkins
-# 验证（切到 jenkins 用户跑）：
-sudo -u jenkins docker ps
-sudo -u jenkins docker compose version
+docker exec jenkins docker ps
+docker exec jenkins docker compose version
 ```
 
-`docker compose`（v2）没有的话，把 Jenkinsfile 里 `COMPOSE = 'docker compose'` 改成 `'docker-compose'`。
+> 注意：手动操作 ielts 服务时用 `COMPOSE_PROJECT_NAME=ielts`；操作 jenkins 前要 `unset` 它，否则 compose 会把 jenkins 也当成 ielts 项目。Jenkinsfile 内部已固定 `ielts`，CI 不受影响。
 
 ## 2. 在 Jenkins 里存密钥（不进仓库）
 
