@@ -10,7 +10,12 @@ ARG NPM_REGISTRY=https://registry.npmmirror.com
 # ---- build stage ----
 FROM node:20-bookworm-slim AS build
 ARG NPM_REGISTRY
-ENV NPM_CONFIG_REGISTRY=$NPM_REGISTRY
+# Registry + node-gyp header mirror, and force better-sqlite3 to compile from
+# source (its GitHub prebuilt-binary download and nodejs.org header download
+# both time out behind the GFW; the toolchain below + these mirrors don't).
+ENV NPM_CONFIG_REGISTRY=$NPM_REGISTRY \
+    npm_config_disturl=https://registry.npmmirror.com/-/binary/node \
+    npm_config_build_from_source=true
 WORKDIR /app
 # Point apt at a fast mirror (defaults to Aliyun — LAN speed on an Aliyun ECS;
 # deb.debian.org is painfully slow from mainland China). Override if needed.
