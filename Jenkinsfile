@@ -1,0 +1,106 @@
+// CI/CD for the IELTS sync server.
+//
+// Topology: Jenkins runs on the SAME Aliyun ECS as the Docker service, so a
+// push just rebuilds the container in place. No SSH, no registry, no file copy.
+//
+//   local `git push` -> GitHub webhook -> Jenkins job (this file) ->
+//   docker compose up -d --build -> health check
+//
+// The SQLite DB lives in the named docker volume `ielts-data` (see
+// docker-compose.yml), so it survives image rebuilds regardless of the
+// Jenkins workspace. Secrets are injected from Jenkins credentials into a
+// throwaway .env and removed afterwards — they never enter git.
+//
+// One-time setup (see the checklist in the chat / docs/ci-jenkins.md):
+//   - Jenkins user can run docker (in the `docker` group)
+//   - Jenkins credentials (Secret text): ielts-jwt-secret, ielts-ai-api-key
+//   - Pipeline job: "Pipeline script from SCM" -> this repo -> branch main
+//     -> Script Path: Jenkinsfile, and tick
+//     "GitHub hook trigger for GITScm polling"
+//   - GitHub webhook -> http://<ECS_IP>:8080/github-webhook/ (push events)
+
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()          // never let two deploys race
+    timeout(time: 20, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+  }
+
+  triggers {
+    githubPush()                        // fired by the GitHub webhook
+  }
+
+  environment {
+    COMPOSE = 'docker compose'          // v2 syntax; use 'docker-compose' if on v1
+    PORT    = '8787'
+    // Fixed project name so the container + `ielts-data` volume are the SAME
+    // regardless of which directory Jenkins builds in. Set this to match your
+    // EXISTING live stack (see `docker compose ls` / `docker volume ls`) so the
+    // first Jenkins deploy reuses your current DB instead of creating a blank one.
+    COMPOSE_PROJECT_NAME = 'ielts'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Write .env') {
+      steps {
+        // Secrets come from Jenkins' credential store, not from git.
+        // Single-quoted sh + shell expansion so Jenkins masks them in the log.
+        withCredentials([
+          string(credentialsId: 'ielts-jwt-secret', variable: 'JWT_SECRET'),
+          string(credentialsId: 'ielts-ai-api-key', variable: 'AI_API_KEY')
+        ]) {
+          sh '''
+            umask 077
+            cat > .env <<EOF
+JWT_SECRET=${JWT_SECRET}
+AI_BASE_URL=https://aiberm.com/v1
+AI_API_KEY=${AI_API_KEY}
+AI_MODEL=glm-5.3
+EOF
+          '''
+        }
+      }
+    }
+
+    stage('Build & deploy') {
+      steps {
+        // Rebuilds only what changed; the named volume keeps the DB.
+        sh '$COMPOSE up -d --build'
+      }
+    }
+
+    stage('Health check') {
+      steps {
+        sh '''
+          for i in $(seq 1 30); do
+            if curl -fsS "http://localhost:$PORT/health" >/dev/null; then
+              echo "health OK"; exit 0
+            fi
+            sleep 2
+          done
+          echo "health check FAILED — recent server logs:"
+          $COMPOSE logs --tail=80 server || true
+          exit 1
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      sh 'rm -f .env || true'           // don't leave secrets on disk
+      sh 'docker image prune -f || true' // reclaim dangling layers
+    }
+    success { echo 'Deployed. http://<ECS_IP>:8787/health should return ok.' }
+    failure { echo 'Deploy failed — the container was left as-is; check the log above.' }
+  }
+}
