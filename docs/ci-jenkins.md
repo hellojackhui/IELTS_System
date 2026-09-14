@@ -102,3 +102,7 @@ New Item → 名字随意（如 `ielts-server`）→ **Pipeline** → OK，然�
 - **`JWT_SECRET:?...` 构建失败**：第 2 步的凭据 ID 没对上，或密钥没填。
 - **数据安全**：DB 在具名卷 `ielts-data`，`docker compose down` 不加 `-v` 不会删卷；升级放心。想备份就 `docker run --rm -v ielts-data:/data -v $PWD:/backup alpine tar czf /backup/ielts-db.tgz -C /data .`。
 - 想更稳可加**回滚**：部署前 `git rev-parse HEAD` 记下旧 commit，健康检查失败就 `git reset --hard <旧>` 再 `up -d --build`。需要的话我给你补进 Jenkinsfile。
+
+## 状态
+
+- 2026-09-14：push → GitHub webhook → Jenkins → docker compose 自动部署，闭环打通。
