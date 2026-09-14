@@ -12,7 +12,12 @@ FROM node:20-bookworm-slim AS build
 ARG NPM_REGISTRY
 ENV NPM_CONFIG_REGISTRY=$NPM_REGISTRY
 WORKDIR /app
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+# Point apt at a fast mirror (defaults to Aliyun — LAN speed on an Aliyun ECS;
+# deb.debian.org is painfully slow from mainland China). Override if needed.
+ARG APT_MIRROR=mirrors.aliyun.com
+RUN sed -i "s|deb.debian.org|$APT_MIRROR|g; s|security.debian.org|$APT_MIRROR|g" \
+      /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources 2>/dev/null; \
+    apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Install workspace deps (lockfile-driven)
 COPY package*.json ./
