@@ -9,7 +9,13 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hellojackhui.ieltstutor"
+      "bundleIdentifier": "com.hellojackhui.ieltstutor",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": false
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {

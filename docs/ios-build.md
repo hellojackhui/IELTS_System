@@ -6,6 +6,23 @@
 - 一台 Mac，装了 **Xcode**（App Store 下载，首次打开让它装好命令行组件）
 - 一个 **Apple ID**（免费即可，不需要 $99/年 开发者账号）
 - iPhone + 数据线
+- **CocoaPods**（已装好，见下）
+
+## CocoaPods / Ruby（已配置好，出问题再看）
+系统自带的 Ruby 2.6 太老，装不了新版 CocoaPods（依赖链要 Ruby ≥ 3.2）。已经用 **rbenv** 装了一个独立的 Ruby 3.4.5（在 `~/.rbenv`，不需要 sudo，不动系统），并装好 CocoaPods 1.17。`~/.zshrc` 里已加 rbenv 初始化，**新开终端**即可直接用：
+
+```bash
+ruby -v   # 应显示 3.4.5
+pod --version   # 应显示 1.17.0
+```
+
+要卸载/重来：`rm -rf ~/.rbenv`，再删掉 `~/.zshrc` 里 rbenv 那几行即可。
+
+> 注意（国内网络）：`pod install` 首次会从 Maven / CDN 下载 React Native 预编译包，你的终端如果连不上（GitHub/Maven 被墙），需要给终端配代理（和你 Clash 一样的 `127.0.0.1:7890`）：
+> ```bash
+> export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890
+> ```
+> 本机的 `ios/Pods` 已经装好一份，Podfile 不变时 `expo run:ios` 会跳过 `pod install`，正常离线编译。
 
 ## 步骤
 
