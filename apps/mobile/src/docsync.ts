@@ -3,6 +3,7 @@ import type { ApiClient } from '@ielts/core';
 import { applyConversationDocs, collectConversationDocs } from './chat';
 import { applyRewardsDoc, collectRewardsDoc } from './rewards';
 import { applyWordbookDocs, collectWordbookDocs } from './wordbook';
+import { applyCourseDoc, collectCourseDoc } from './course';
 
 const WATERMARK = 'docsync:last:v1';
 
@@ -18,6 +19,7 @@ export async function syncDocs(api: ApiClient): Promise<{ pushed: number; pulled
     ...(await collectConversationDocs(last)),
     ...(await collectRewardsDoc(last)),
     ...(await collectWordbookDocs(last)),
+    ...(await collectCourseDoc(last)),
   ];
   if (changes.length) await api.pushDocs(changes);
 
@@ -25,6 +27,7 @@ export async function syncDocs(api: ApiClient): Promise<{ pushed: number; pulled
   await applyConversationDocs(docs.filter((d) => d.collection === 'conversations'));
   await applyRewardsDoc(docs.find((d) => d.collection === 'rewards'));
   await applyWordbookDocs(docs.filter((d) => d.collection === 'wordbook'));
+  await applyCourseDoc(docs.find((d) => d.collection === 'course'));
 
   await AsyncStorage.setItem(WATERMARK, String(serverTime));
   return { pushed: changes.length, pulled: docs.length };

@@ -1,7 +1,15 @@
 import { COURSE_CHAPTERS as DANKYING_CHAPTERS, COURSE_UNITS as DANKYING_UNITS } from './data/course';
 import { COURSE_EXTRA_CHAPTERS, COURSE_EXTRA_UNITS } from './data/course-extra';
+import { COURSE_EXAMPLES } from './data/course-examples';
 import type { CourseChapter, CourseUnit, CourseWord } from './data/course';
 import { getWord } from './words';
+
+export { COURSE_EXAMPLES };
+
+/** A natural example sentence for a course word (from the mundi-xu book), if any. */
+export function courseWordExample(word: string): string | undefined {
+  return COURSE_EXAMPLES[word.toLowerCase().trim()];
+}
 
 /** Chapters 1–11 come from the dankying book (real articles); 12–22 are sliced
  *  from the main word list at theme boundaries with AI-generated articles. */
@@ -124,22 +132,26 @@ function sentences(text: string): string[] {
 
 /**
  * Build "example-sentence cloze" multiple-choice questions from a unit: for up
- * to `limit` target words, take a sentence containing the word, blank that word,
- * and offer the answer plus distractors drawn from the unit's other targets.
+ * to `limit` of the unit's words, take that word's own example sentence, blank
+ * the word out, and offer the answer plus distractors drawn from the unit's
+ * other words. Falls back to a sentence from the article when a word has no
+ * example.
  */
-export function buildUnitChoiceQuestions(unit: CourseUnit, limit = 8, optionCount = 4): UnitChoiceQuestion[] {
-  const plain = articlePlain(unit);
-  const sents = sentences(plain);
-  const targets = [...new Set(unit.targets)];
-  const pool = [...new Set(unit.targets.map((t) => t.trim()))].filter(Boolean);
+export function buildUnitChoiceQuestions(unit: CourseUnit, limit = 6, optionCount = 4): UnitChoiceQuestion[] {
+  const pool = [...new Set(unit.words.map((w) => w.word.trim()))].filter(Boolean);
+  const articleSents = sentences(articlePlain(unit));
   const out: UnitChoiceQuestion[] = [];
-  for (const word of shuffle(targets)) {
+  for (const w of shuffle(unit.words)) {
     if (out.length >= limit) break;
-    const re = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-    const sent = sents.find((s) => re.test(s));
+    const word = w.word.trim();
+    const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`\\b${esc}\\b`, 'i');
+    let sent = courseWordExample(word);
+    if (!sent || !re.test(sent)) sent = articleSents.find((s) => re.test(s));
     if (!sent) continue;
     const prompt = sent.replace(re, '_____');
-    const distractors = shuffle(pool.filter((w) => w.toLowerCase() !== word.toLowerCase())).slice(0, optionCount - 1);
+    if (!prompt.includes('_____')) continue;
+    const distractors = shuffle(pool.filter((x) => x.toLowerCase() !== word.toLowerCase())).slice(0, optionCount - 1);
     out.push({ word, prompt, answer: word, options: shuffle([word, ...distractors]) });
   }
   return out;

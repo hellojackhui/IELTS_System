@@ -6,6 +6,7 @@ import {
   buildUnitChoiceQuestions,
   chapterUnits,
   courseWordMeaning,
+  courseWordExample,
   getChapter,
   getUnit,
   type CourseUnit,
@@ -234,6 +235,12 @@ function Learn({ unit, onDone }: { unit: CourseUnit; onDone: () => void }) {
               {k + 1}. {d}
             </Text>
           ))}
+          {!!courseWordExample(w.word) && (
+            <View style={styles.exampleBox}>
+              <Ionicons name="chatbubble-ellipses-outline" size={14} color={A} />
+              <Text style={styles.exampleText}>{courseWordExample(w.word)}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.learnNav}>
@@ -751,6 +758,16 @@ const styles = StyleSheet.create({
   flashPos: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic' },
   flashMeaning: { fontSize: 19, color: colors.text, fontWeight: '600', textAlign: 'center' },
   flashDef: { fontSize: 13.5, color: colors.textSecondary, lineHeight: 20, alignSelf: 'stretch' },
+  exampleBox: {
+    flexDirection: 'row',
+    gap: 8,
+    alignSelf: 'stretch',
+    backgroundColor: A + '0E',
+    borderRadius: radius.md,
+    padding: 12,
+    marginTop: 6,
+  },
+  exampleText: { flex: 1, fontSize: 14, color: colors.text, lineHeight: 21, fontStyle: 'italic' },
   learnNav: { flexDirection: 'row', gap: 12 },
   navBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.md, paddingVertical: 14, backgroundColor: colors.card },
   navBtnDisabled: { opacity: 0.6 },

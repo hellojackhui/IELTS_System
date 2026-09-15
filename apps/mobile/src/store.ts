@@ -4,6 +4,7 @@ import { clearConversations } from './chat';
 import { resetDocsWatermark, syncDocs } from './docsync';
 import { clearRewards } from './rewards';
 import { clearWordbook } from './wordbook';
+import { resetCourseProgress } from './course';
 
 const PROGRESS_KEY = 'progress:v1';
 const SYNC_KEY = 'lastSync:v1';
@@ -80,5 +81,5 @@ export async function syncNow(client: ApiClient): Promise<{ pushed: number; pull
 export async function resetLocal(): Promise<void> {
   cache = {};
   await AsyncStorage.multiRemove([PROGRESS_KEY, SYNC_KEY]);
-  await Promise.all([clearConversations(), clearRewards(), clearWordbook(), resetDocsWatermark()]);
+  await Promise.all([clearConversations(), clearRewards(), clearWordbook(), resetCourseProgress(), resetDocsWatermark()]);
 }
