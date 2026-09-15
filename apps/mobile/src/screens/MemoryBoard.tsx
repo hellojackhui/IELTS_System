@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { WORD_COUNT, type QuizMode } from '@ielts/core';
+import { WORD_COUNT, COURSE_CHAPTER_COUNT, COURSE_UNIT_COUNT, type QuizMode } from '@ielts/core';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ActivityCard, ScreenHeader, StatRow } from '../components/ui';
@@ -77,7 +77,7 @@ export function MemoryBoard({
       <ActivityCard
         icon="library-outline"
         title="真经精选 · 分章学练"
-        desc="11 章 · 44 单元 · 先学后测（选择 / 听写 / 文章填空）"
+        desc={`${COURSE_CHAPTER_COUNT} 章 · ${COURSE_UNIT_COUNT} 单元 · 先学后测（选择 / 听写 / 文章填空）`}
         accent={A}
         onPress={onOpenCourse}
       />
