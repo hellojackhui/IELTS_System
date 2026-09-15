@@ -63,7 +63,7 @@ pipeline {
             umask 077
             cat > .env <<EOF
 JWT_SECRET=${JWT_SECRET}
-AI_BASE_URL=https://aiberm.com/v1
+AI_BASE_URL=https://aiberm.org/v1
 AI_API_KEY=${AI_API_KEY}
 AI_MODEL=glm-5.3
 EOF

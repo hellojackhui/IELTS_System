@@ -44,7 +44,7 @@ function readEnv() {
   return env;
 }
 const ENV = readEnv();
-const BASE = (ENV.AI_BASE_URL || 'https://aiberm.com/v1').replace(/\/$/, '');
+const BASE = (ENV.AI_BASE_URL || 'https://aiberm.org/v1').replace(/\/$/, '');
 const KEY = ENV.AI_API_KEY;
 const MODEL = ENV.AI_MODEL || 'glm-5.3';
 if (!KEY) throw new Error('no AI_API_KEY in apps/server/.env');

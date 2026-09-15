@@ -5,7 +5,7 @@ import { authMiddleware } from '../auth.js';
 
 export const aiRoutes = new Hono();
 
-const BASE_URL = process.env.AI_BASE_URL ?? 'https://aiberm.com/v1';
+const BASE_URL = process.env.AI_BASE_URL ?? 'https://aiberm.org/v1';
 const API_KEY = process.env.AI_API_KEY ?? '';
 const MODEL = process.env.AI_MODEL ?? 'glm-5.3';
 
