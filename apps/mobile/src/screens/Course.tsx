@@ -76,7 +76,7 @@ function Chapters({
     <View style={styles.flex}>
       <TopBar title="词汇课程" onBack={onExit} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.lead}>雅思词汇真经 · 11 章 · 先学后测</Text>
+        <Text style={styles.lead}>雅思词汇真经 · {COURSE_CHAPTERS.length} 章 · 先学后测</Text>
         {COURSE_CHAPTERS.map((ch) => {
           const units = chapterUnits(ch.chapter);
           const done = units.filter((u) => (progress[u.id]?.testBest ?? 0) >= 60).length;

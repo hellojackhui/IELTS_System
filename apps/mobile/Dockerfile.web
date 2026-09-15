@@ -1,0 +1,38 @@
+# Static web build of the Expo app, served by nginx on :8081.
+# Build context is the repo root: `docker build -f apps/mobile/Dockerfile.web .`
+# The web app derives the API base from window.location at runtime, so no
+# build-time API env is needed (served at :8081 → talks to :8787 on same host).
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+
+# ---- build stage ----
+FROM node:20-bookworm-slim AS build
+ARG NPM_REGISTRY
+ENV NPM_CONFIG_REGISTRY=$NPM_REGISTRY \
+    npm_config_disturl=https://registry.npmmirror.com/-/binary/node \
+    npm_config_build_from_source=true \
+    EXPO_OFFLINE=1 \
+    EXPO_NO_TELEMETRY=1 \
+    CI=1
+WORKDIR /app
+ARG APT_MIRROR=mirrors.aliyun.com
+RUN sed -i "s|deb.debian.org|$APT_MIRROR|g; s|security.debian.org|$APT_MIRROR|g" \
+      /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources 2>/dev/null; \
+    apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+COPY packages/core/package.json packages/core/
+COPY apps/server/package.json apps/server/
+COPY apps/mobile/package.json apps/mobile/
+RUN npm ci
+
+COPY packages/core packages/core
+COPY apps/mobile apps/mobile
+RUN npm run build:core && cd apps/mobile && npx expo export --platform web --output-dir dist
+
+# ---- runtime stage ----
+FROM nginx:alpine
+COPY --from=build /app/apps/mobile/dist /usr/share/nginx/html
+# Serve on 8081 with SPA fallback.
+RUN printf 'server {\n  listen 8081;\n  server_name _;\n  root /usr/share/nginx/html;\n  location / { try_files $uri $uri/ /index.html; }\n}\n' \
+      > /etc/nginx/conf.d/default.conf
+EXPOSE 8081
