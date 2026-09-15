@@ -14,11 +14,13 @@ export function MemoryBoard({
   onStart,
   onReview,
   onOpenWordbook,
+  onOpenCourse,
   reloadToken,
 }: {
   onStart: (mode: QuizMode) => void;
   onReview: () => void;
   onOpenWordbook: () => void;
+  onOpenCourse: () => void;
   reloadToken: number;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -69,6 +71,15 @@ export function MemoryBoard({
         accent={A}
         onPress={onReview}
         badge={due > 0 ? String(due) : undefined}
+      />
+
+      <Text style={styles.sectionLabel}>词汇课程</Text>
+      <ActivityCard
+        icon="library-outline"
+        title="真经精选 · 分章学练"
+        desc="11 章 · 44 单元 · 先学后测（选择 / 听写 / 文章填空）"
+        accent={A}
+        onPress={onOpenCourse}
       />
 
       <Text style={styles.sectionLabel}>练习方式</Text>
