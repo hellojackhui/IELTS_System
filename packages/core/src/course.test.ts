@@ -10,9 +10,9 @@ import {
 } from './course';
 
 describe('course data', () => {
-  it('has 11 chapters and non-empty units', () => {
-    expect(COURSE_CHAPTERS).toHaveLength(11);
-    expect(COURSE_UNITS.length).toBeGreaterThan(40);
+  it('has 22 chapters and non-empty units', () => {
+    expect(COURSE_CHAPTERS).toHaveLength(22);
+    expect(COURSE_UNITS.length).toBeGreaterThan(120);
     for (const u of COURSE_UNITS) {
       expect(u.words.length).toBeGreaterThan(0);
       expect(u.targets.length).toBeGreaterThan(0);

@@ -1,8 +1,12 @@
-import { COURSE_CHAPTERS, COURSE_UNITS } from './data/course';
+import { COURSE_CHAPTERS as DANKYING_CHAPTERS, COURSE_UNITS as DANKYING_UNITS } from './data/course';
+import { COURSE_EXTRA_CHAPTERS, COURSE_EXTRA_UNITS } from './data/course-extra';
 import type { CourseChapter, CourseUnit, CourseWord } from './data/course';
 import { getWord } from './words';
 
-export { COURSE_CHAPTERS, COURSE_UNITS };
+/** Chapters 1–11 come from the dankying book (real articles); 12–22 are sliced
+ *  from the main word list at theme boundaries with AI-generated articles. */
+export const COURSE_CHAPTERS: CourseChapter[] = [...DANKYING_CHAPTERS, ...COURSE_EXTRA_CHAPTERS];
+export const COURSE_UNITS: CourseUnit[] = [...DANKYING_UNITS, ...COURSE_EXTRA_UNITS];
 export type { CourseChapter, CourseUnit, CourseWord };
 
 export const COURSE_CHAPTER_COUNT = COURSE_CHAPTERS.length;
