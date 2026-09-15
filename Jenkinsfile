@@ -30,7 +30,8 @@ pipeline {
   }
 
   triggers {
-    githubPush()                        // fired by the GitHub webhook
+    githubPush()                        // fast path: fired by the GitHub webhook
+    pollSCM('H/5 * * * *')              // fallback: catch missed webhooks within ~5 min
   }
 
   environment {
