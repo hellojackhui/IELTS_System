@@ -13,20 +13,23 @@ export interface ListeningQuestion {
   explain?: string;
 }
 
+export type ListeningSection = 1 | 4;
+
 export interface Listening {
   title: string;
   scenario: string;
   lines: ListeningLine[];
   questions: ListeningQuestion[];
+  section?: number;
 }
 
-export async function fetchListening(): Promise<Listening> {
+export async function fetchListening(section: ListeningSection = 1): Promise<Listening> {
   const token = getToken();
   if (!token) throw new Error('请先在「我的」登录后使用');
   const resp = await fetch(`${API_URL}/ai/listening`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({}),
+    body: JSON.stringify({ section }),
   });
   const data = (await resp.json().catch(() => ({}))) as Listening & { error?: string };
   if (!resp.ok || data.error) throw new Error(data.error || `生成失败（${resp.status}）`);

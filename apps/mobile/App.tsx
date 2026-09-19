@@ -44,7 +44,7 @@ type Overlay =
   | { kind: 'reading'; genre: string }
   | { kind: 'wordbook' }
   | { kind: 'course' }
-  | { kind: 'listening-exam' };
+  | { kind: 'listening-exam'; section: 1 | 4 };
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
@@ -73,7 +73,7 @@ export default function App() {
       <Pane visible={tab === 'listening'}>
         <ListeningBoard
           onStart={(mode) => setOverlay({ kind: 'quiz', mode })}
-          onStartExam={() => setOverlay({ kind: 'listening-exam' })}
+          onStartExam={(section) => setOverlay({ kind: 'listening-exam', section })}
         />
       </Pane>
       <Pane visible={tab === 'exam'}>
@@ -154,7 +154,7 @@ function OverlayHost({ overlay, onClose }: { overlay: Overlay; onClose: () => vo
         {overlay.kind === 'reading' && <ReadingExam genre={overlay.genre} onExit={close} />}
         {overlay.kind === 'wordbook' && <Wordbook onExit={close} />}
         {overlay.kind === 'course' && <Course onExit={close} />}
-        {overlay.kind === 'listening-exam' && <ListeningExam onExit={close} />}
+        {overlay.kind === 'listening-exam' && <ListeningExam onExit={close} section={overlay.section} />}
       </SafeAreaView>
     </Animated.View>
   );

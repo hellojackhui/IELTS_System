@@ -483,17 +483,29 @@ aiRoutes.post('/reading', async (c) => {
   }
 });
 
-/** Generate an IELTS Listening Section-1 style dialogue + fill-in questions. */
+/** Generate an IELTS Listening exercise + fill-in questions.
+ *  Body: { section?: 1 | 4 } — 1 = Section-1 conversation, 4 = Section-4 lecture. */
 aiRoutes.post('/listening', async (c) => {
   if (!API_KEY) return c.json({ error: 'AI 未配置（缺少 AI_API_KEY）' }, 503);
+  const body = await c.req.json().catch(() => ({}));
+  const section = body?.section === 4 ? 4 : 1;
 
-  const prompt =
+  const conversationPrompt =
     `写一段**原创**的雅思听力 Section 1 风格英文对话：两个人，日常事务场景（如租房、报名课程、预订酒店/餐厅、咨询服务、办理会员等，场景自选其一）。` +
     `对话自然、口语化、8-12 轮，两位说话人各有英文名字，信息里要自然包含姓名、数字、日期/时间、地点、价格、物品等可考的细节。内容自拟、真实感强，不得抄袭现实材料。` +
     `然后基于对话出 6 道填空题（IELTS 填表/笔记补全风格）：每题是一句带一个空 "_____" 的笔记，答案必须是对话中**原词**出现的一个词或很短的词组（1-3 个词，如人名/数字/日期/地点/物品），大小写不敏感。` +
     `每题附简短中文解析（说明答案来自哪句）。只返回 JSON，不要 markdown：` +
     `{"title":"...","scenario":"中文一句话场景描述","lines":[{"speaker":"Tom","text":"Hi, I'd like to ..."},{"speaker":"Anna","text":"..."}],` +
     `"questions":[{"q":"The class starts at _____.","answer":"9am","explain":"..."}]}`;
+
+  const lecturePrompt =
+    `写一段**原创**的雅思听力 Section 4 风格英文学术讲座（单人独白，一位讲师），主题学术但通俗（历史/环境/心理/科技/生物/社会等，自选其一），约 220-280 词，自然分成 3-4 段。内容自拟、真实感强，不得抄袭现实材料。` +
+    `然后基于讲座出 6 道笔记/摘要补全填空题：每题是一句带一个空 "_____" 的笔记，答案必须是讲座中**原词**出现的一个词或很短的词组（1-3 个词，如术语/名称/数字/年份等），大小写不敏感。` +
+    `每题附简短中文解析（说明答案来自哪句）。只返回 JSON，不要 markdown（lines 用讲座的每一段，speaker 都填 "Lecturer"）：` +
+    `{"title":"...","scenario":"中文一句话讲座主题","lines":[{"speaker":"Lecturer","text":"第一段..."},{"speaker":"Lecturer","text":"第二段..."}],` +
+    `"questions":[{"q":"Photosynthesis mainly happens in the _____.","answer":"chloroplast","explain":"..."}]}`;
+
+  const prompt = section === 4 ? lecturePrompt : conversationPrompt;
 
   try {
     const parsed = await completeJson<{
@@ -505,7 +517,7 @@ aiRoutes.post('/listening', async (c) => {
     if (!Array.isArray(parsed?.lines) || !parsed.lines.length || !Array.isArray(parsed.questions) || !parsed.questions.length) {
       return c.json({ error: '生成内容不完整' }, 502);
     }
-    return c.json(parsed);
+    return c.json({ ...parsed, section });
   } catch (e) {
     return c.json({ error: String((e as Error).message) }, 502);
   }

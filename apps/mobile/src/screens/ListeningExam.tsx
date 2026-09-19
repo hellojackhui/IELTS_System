@@ -12,25 +12,26 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { checkListening, fetchListening, type Listening } from '../listening';
+import { checkListening, fetchListening, type Listening, type ListeningSection } from '../listening';
 import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
 
 const A = boards.listening.accent;
 
-export function ListeningExam({ onExit }: { onExit: () => void }) {
+export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; section?: ListeningSection }) {
   const [data, setData] = useState<Listening | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState(false);
   const [playing, setPlaying] = useState(false);
   const cancelRef = useRef(false);
+  const heading = section === 4 ? '听力理解 · 学术讲座' : '听力理解 · 场景对话';
 
   function load() {
     setData(null);
     setError(null);
     setAnswers({});
     setRevealed(false);
-    fetchListening()
+    fetchListening(section)
       .then(setData)
       .catch((e) => setError(String((e as Error).message)));
   }
@@ -111,7 +112,7 @@ export function ListeningExam({ onExit }: { onExit: () => void }) {
             <Text style={[styles.exit, { color: A }]}>返回</Text>
           </Pressable>
           <Text style={styles.title} numberOfLines={1}>
-            听力理解
+            {heading}
           </Text>
           <Pressable onPress={load} hitSlop={12} style={{ minWidth: 60, alignItems: 'flex-end' }}>
             <Ionicons name="refresh" size={20} color={A} />

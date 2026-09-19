@@ -11,7 +11,7 @@ export function ListeningBoard({
   onStartExam,
 }: {
   onStart: (mode: QuizMode) => void;
-  onStartExam: () => void;
+  onStartExam: (section: 1 | 4) => void;
 }) {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -23,7 +23,14 @@ export function ListeningBoard({
         title="场景对话"
         desc="AI 生成日常对话，边听边做笔记补全（雅思 Section 1 风格）"
         accent={A}
-        onPress={onStartExam}
+        onPress={() => onStartExam(1)}
+      />
+      <ActivityCard
+        icon="school-outline"
+        title="学术讲座"
+        desc="AI 生成学术独白讲座，边听边做摘要补全（雅思 Section 4 风格）"
+        accent={A}
+        onPress={() => onStartExam(4)}
       />
 
       <Text style={styles.sectionLabel}>练习方式</Text>
