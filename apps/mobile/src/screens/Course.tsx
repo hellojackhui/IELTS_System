@@ -593,16 +593,13 @@ function ClozeRound({
     }
     setSelected(idx);
   }
+  const correctCount = fills.filter((f, k) => (f ?? '').toLowerCase() === blankKeys[k].toLowerCase()).length;
   function check() {
-    let c = 0;
-    const wrongWords: string[] = [];
-    fills.forEach((f, k) => {
-      if ((f ?? '').toLowerCase() === blankKeys[k].toLowerCase()) c++;
-      else wrongWords.push(blankKeys[k]);
-    });
-    setChecked(true);
-    // brief reveal, then report up
-    setTimeout(() => onDone(c, blankKeys.length, wrongWords), 1600);
+    setChecked(true); // reveal corrections; the user reviews, then taps 查看结果
+  }
+  function finish() {
+    const wrongWords = blankKeys.filter((key, i) => (fills[i] ?? '').toLowerCase() !== key.toLowerCase());
+    onDone(correctCount, blankKeys.length, wrongWords);
   }
 
   let bi = -1;
@@ -633,8 +630,8 @@ function ClozeRound({
                   ]}
                 >
                   {' '}
-                  {val ?? '_____'}
-                  {bad ? ` (${p.answer})` : ''}{' '}
+                  {checked ? (ok ? val : p.answer) : (val ?? '_____')}
+                  {' '}
                 </Text>
               );
             })}
@@ -668,7 +665,18 @@ function ClozeRound({
             <Text style={styles.nextText}>提交</Text>
           </Pressable>
         )}
-        {checked && <Text style={styles.checkingHint}>批改中…</Text>}
+        {checked && (
+          <>
+            <Text style={styles.clozeScore}>
+              填对 {correctCount} / {blankKeys.length}
+              {correctCount < blankKeys.length ? '　·　红色为正确答案' : ' 🎉'}
+            </Text>
+            <Pressable style={[styles.nextBtn, { backgroundColor: A }]} onPress={finish}>
+              <Text style={styles.nextText}>查看结果</Text>
+              <Ionicons name="arrow-forward" size={18} color={colors.white} />
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -804,14 +812,14 @@ const styles = StyleSheet.create({
   blank: { color: A, fontWeight: '700' },
   blankSel: { color: A, backgroundColor: A + '22' },
   blankOk: { color: colors.correct },
-  blankBad: { color: colors.wrong, textDecorationLine: 'line-through' },
+  blankBad: { color: colors.wrong, backgroundColor: colors.wrong + '18' },
   bank: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tile: { borderWidth: 1.5, borderColor: A + '55', borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: A + '12' },
   tileUsed: { borderColor: colors.border, backgroundColor: colors.bg, opacity: 0.5 },
   tileText: { fontSize: 15, color: A, fontWeight: '600' },
-  checkingHint: { textAlign: 'center', color: colors.textMuted, fontSize: 13 },
+  clozeScore: { textAlign: 'center', color: colors.text, fontSize: 15, fontWeight: '700', marginTop: 2 },
 
-  nextBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.md, paddingVertical: 14 },
+  nextBtn: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.md, paddingVertical: 14 },
   nextText: { color: colors.white, fontWeight: '700', fontSize: 15 },
   bigScore: { fontSize: 52, fontWeight: '800' },
   wrongList: { alignSelf: 'stretch', marginTop: 18, gap: 6 },
