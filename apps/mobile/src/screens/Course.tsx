@@ -13,11 +13,15 @@ import {
 } from '@ielts/core';
 import * as Speech from 'expo-speech';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { recordActivity } from '../rewards';
 import { recordAnswer } from '../store';
 import { getCourseProgress, markUnitLearned, recordUnitTest } from '../course';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, WIDE_BREAKPOINT } from '../theme';
+
+function useWide() {
+  return useWindowDimensions().width >= WIDE_BREAKPOINT;
+}
 
 const A = boards.memory.accent;
 
@@ -73,8 +77,9 @@ function Chapters({
   onOpenUnit: (unitId: string) => void;
 }) {
   const [open, setOpen] = useState<number | null>(1);
+  const wide = useWide();
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, wide && styles.flexWide]}>
       <TopBar title="词汇课程" onBack={onExit} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.lead}>雅思词汇真经 · {COURSE_CHAPTERS.length} 章 · 先学后测</Text>
@@ -97,12 +102,12 @@ function Chapters({
                 <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
               </Pressable>
               {expanded && (
-                <View style={styles.unitList}>
+                <View style={[styles.unitList, wide && styles.unitListWide]}>
                   {units.map((u, i) => {
                     const p = progress[u.id];
                     const passed = (p?.testBest ?? 0) >= 60;
                     return (
-                      <Pressable key={u.id} style={styles.unitRow} onPress={() => onOpenUnit(u.id)}>
+                      <Pressable key={u.id} style={[styles.unitRow, wide && styles.unitRowWide]} onPress={() => onOpenUnit(u.id)}>
                         <View
                           style={[
                             styles.unitDot,
@@ -146,8 +151,9 @@ function UnitHome({
   onTest: () => void;
 }) {
   const ch = getChapter(unit.chapter);
+  const wide = useWide();
   return (
-    <View style={styles.flex}>
+    <View style={[styles.flex, wide && styles.flexWide]}>
       <TopBar title={ch?.theme ?? '单元'} onBack={onBack} />
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={[styles.card, shadow.card]}>
@@ -180,20 +186,23 @@ function UnitHome({
 }
 
 function WordPreview({ unit }: { unit: CourseUnit }) {
+  const wide = useWide();
   return (
     <View style={[styles.card, shadow.card]}>
       <Text style={styles.sectionLabel}>单词表</Text>
-      {unit.words.map((w) => (
-        <View key={w.word} style={styles.previewRow}>
-          <Pressable onPress={() => speak(w.word)} hitSlop={8} style={styles.previewSpeak}>
-            <Ionicons name="volume-medium-outline" size={16} color={A} />
-          </Pressable>
-          <Text style={styles.previewWord}>{w.word}</Text>
-          <Text style={styles.previewMeaning} numberOfLines={1}>
-            {courseWordMeaning(w)}
-          </Text>
-        </View>
-      ))}
+      <View style={wide && styles.previewGrid}>
+        {unit.words.map((w) => (
+          <View key={w.word} style={[styles.previewRow, wide && styles.previewRowWide]}>
+            <Pressable onPress={() => speak(w.word)} hitSlop={8} style={styles.previewSpeak}>
+              <Ionicons name="volume-medium-outline" size={16} color={A} />
+            </Pressable>
+            <Text style={styles.previewWord}>{w.word}</Text>
+            <Text style={styles.previewMeaning} numberOfLines={1}>
+              {courseWordMeaning(w)}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -701,6 +710,11 @@ function TopBar({ title, onBack }: { title: string; onBack: () => void }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
+  flexWide: { maxWidth: 1000 },
+  unitListWide: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24 },
+  unitRowWide: { width: '46%', borderTopWidth: 0, paddingVertical: 9 },
+  previewGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28 },
+  previewRowWide: { width: '44%', borderTopWidth: 0, paddingVertical: 8 },
   container: { padding: space.lg, paddingBottom: 48, gap: 12 },
   muted: { color: colors.textMuted, fontSize: 14 },
   lead: { fontSize: 13, color: colors.textMuted, marginBottom: 4 },
