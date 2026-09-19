@@ -16,6 +16,7 @@ import { ProfileBoard } from './src/screens/ProfileBoard';
 import { Course } from './src/screens/Course';
 import { Quiz } from './src/screens/Quiz';
 import { ReadingExam } from './src/screens/ReadingExam';
+import { ListeningExam } from './src/screens/ListeningExam';
 import { WritingExam } from './src/screens/WritingExam';
 import { Wordbook } from './src/screens/Wordbook';
 import { boards, colors, useNative, WIDE_BREAKPOINT } from './src/theme';
@@ -42,7 +43,8 @@ type Overlay =
   | { kind: 'writing' }
   | { kind: 'reading'; genre: string }
   | { kind: 'wordbook' }
-  | { kind: 'course' };
+  | { kind: 'course' }
+  | { kind: 'listening-exam' };
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
@@ -69,7 +71,10 @@ export default function App() {
         <AIBoard />
       </Pane>
       <Pane visible={tab === 'listening'}>
-        <ListeningBoard onStart={(mode) => setOverlay({ kind: 'quiz', mode })} />
+        <ListeningBoard
+          onStart={(mode) => setOverlay({ kind: 'quiz', mode })}
+          onStartExam={() => setOverlay({ kind: 'listening-exam' })}
+        />
       </Pane>
       <Pane visible={tab === 'exam'}>
         <ExamBoard
@@ -149,6 +154,7 @@ function OverlayHost({ overlay, onClose }: { overlay: Overlay; onClose: () => vo
         {overlay.kind === 'reading' && <ReadingExam genre={overlay.genre} onExit={close} />}
         {overlay.kind === 'wordbook' && <Wordbook onExit={close} />}
         {overlay.kind === 'course' && <Course onExit={close} />}
+        {overlay.kind === 'listening-exam' && <ListeningExam onExit={close} />}
       </SafeAreaView>
     </Animated.View>
   );

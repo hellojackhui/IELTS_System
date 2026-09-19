@@ -6,10 +6,25 @@ import { boards, colors, CONTENT_MAX_WIDTH, space } from '../theme';
 
 const A = boards.listening.accent;
 
-export function ListeningBoard({ onStart }: { onStart: (mode: QuizMode) => void }) {
+export function ListeningBoard({
+  onStart,
+  onStartExam,
+}: {
+  onStart: (mode: QuizMode) => void;
+  onStartExam: () => void;
+}) {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <ScreenHeader title="听力" subtitle="用耳朵记单词，练听音辨词" accent={A} />
+      <ScreenHeader title="听力" subtitle="听音辨词，也练场景听力理解" accent={A} />
+
+      <Text style={styles.sectionLabel}>听力理解</Text>
+      <ActivityCard
+        icon="ear-outline"
+        title="场景对话"
+        desc="AI 生成日常对话，边听边做笔记补全（雅思 Section 1 风格）"
+        accent={A}
+        onPress={onStartExam}
+      />
 
       <Text style={styles.sectionLabel}>练习方式</Text>
       <ActivityCard
@@ -19,8 +34,6 @@ export function ListeningBoard({ onStart }: { onStart: (mode: QuizMode) => void 
         accent={A}
         onPress={() => onStart('dictation')}
       />
-
-      <ActivityCard icon="mic-outline" title="句子听写" desc="听整句英文并复现（开发中）" accent={A} badge="即将上线" />
 
       <Card style={{ marginTop: 12 }}>
         <Text style={styles.tipTitle}>💡 小贴士</Text>
