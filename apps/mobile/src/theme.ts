@@ -37,8 +37,10 @@ export const boards = {
   profile: { accent: '#5A6472', tint: '#ECEEF1', icon: 'person' as const },
 };
 
-/** Layout breakpoint: at or above this width we use the desktop sidebar layout. */
-export const WIDE_BREAKPOINT = 900;
+/** Layout breakpoint: at or above this width we use the desktop sidebar layout.
+ * 720pt (not 900) so iPad portrait widths (744–1024) get the wide layout too;
+ * the widest phone is ~430pt, well below. */
+export const WIDE_BREAKPOINT = 720;
 export const CONTENT_MAX_WIDTH = 720;
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
