@@ -4,4 +4,5 @@ export * from './srs';
 export * from './quiz';
 export * from './course';
 export * from './data/scenarios';
+export * from './data/redalert';
 export * from './api';
