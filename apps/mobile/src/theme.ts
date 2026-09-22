@@ -30,6 +30,7 @@ export const colors = {
 /** Each board carries its own accent so the three sections read as distinct places. */
 export const boards = {
   memory: { accent: '#2D6A7A', tint: '#EAF1F3', icon: 'book' as const },
+  scenario: { accent: '#3F8A6E', tint: '#E7F1EC', icon: 'chatbubbles' as const },
   ai: { accent: '#5B57A6', tint: '#ECEBF6', icon: 'sparkles' as const },
   listening: { accent: '#B4703A', tint: '#F6EEE4', icon: 'headset' as const },
   exam: { accent: '#A6505E', tint: '#F5E9EC', icon: 'document-text' as const },

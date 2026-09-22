@@ -12,6 +12,7 @@ import { AIBoard } from './src/screens/AIBoard';
 import { ExamBoard } from './src/screens/ExamBoard';
 import { ListeningBoard } from './src/screens/ListeningBoard';
 import { MemoryBoard } from './src/screens/MemoryBoard';
+import { ScenarioBoard } from './src/screens/ScenarioBoard';
 import { ProfileBoard } from './src/screens/ProfileBoard';
 import { CourseUnitFlow } from './src/screens/Course';
 import { Quiz } from './src/screens/Quiz';
@@ -32,6 +33,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 
 const TABS: TabItem[] = [
   { key: 'memory', label: '单词', icon: 'book', accent: boards.memory.accent },
+  { key: 'scenario', label: '场景', icon: 'chatbubbles', accent: boards.scenario.accent },
   { key: 'ai', label: 'AI', icon: 'sparkles', accent: boards.ai.accent },
   { key: 'listening', label: '听力', icon: 'headset', accent: boards.listening.accent },
   { key: 'exam', label: '考试', icon: 'document-text', accent: boards.exam.accent },
@@ -65,6 +67,9 @@ export default function App() {
           onOpenUnit={(unitId) => setOverlay({ kind: 'course-unit', unitId })}
           reloadToken={reloadToken}
         />
+      </Pane>
+      <Pane visible={tab === 'scenario'}>
+        <ScenarioBoard />
       </Pane>
       <Pane visible={tab === 'ai'}>
         <AIBoard />

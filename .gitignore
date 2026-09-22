@@ -10,3 +10,4 @@ apps/server/*.db-*
 .env
 .env.local
 .article-cache.json
+.scenario-cache.json
