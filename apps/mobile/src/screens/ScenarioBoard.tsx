@@ -236,7 +236,7 @@ export function ScenarioBoard() {
           </View>
 
           <Text style={styles.sectionLabel}>场景关卡</Text>
-          <View style={wide ? styles.grid : undefined}>
+          <View style={wide ? styles.grid : styles.levelList}>
             {levels
               .filter((l) => l.kind === 'scenario')
               .map((l) => (
@@ -255,7 +255,7 @@ export function ScenarioBoard() {
                   </Text>
                   <Text style={styles.groupCount}>{grp.units.length} 关</Text>
                 </View>
-                <View style={wide ? styles.grid : undefined}>
+                <View style={wide ? styles.grid : styles.levelList}>
                   {grp.units.map((u) => {
                     const l = levels.find((x) => x.id === `ra:${u.game}:${u.unit}`);
                     if (!l) return null;
@@ -305,31 +305,34 @@ function LevelCard({
   onBrowse: () => void;
   wide: boolean;
 }) {
+  // Compact single-row card: tap the row to browse sentences, the round play
+  // button starts the challenge — half the height of the old two-button card.
   return (
-    <View style={[styles.levelCard, shadow.soft, wide && styles.catCardWide]}>
-      <View style={styles.levelHead}>
-        <View style={styles.catIcon}>
-          <Ionicons name={level.icon as keyof typeof Ionicons.glyphMap} size={20} color={A} />
-        </View>
-        <View style={styles.flex}>
+    <Pressable style={[styles.levelCard, shadow.soft, wide && styles.catCardWide]} onPress={onBrowse}>
+      <View style={styles.catIcon}>
+        <Ionicons name={level.icon as keyof typeof Ionicons.glyphMap} size={20} color={A} />
+      </View>
+      <View style={styles.flex}>
+        <View style={styles.levelTitleRow}>
           <Text style={styles.catTitle} numberOfLines={1}>
             {level.title}
           </Text>
-          <Text style={styles.catCount}>{level.sentences.length} 句</Text>
+          {progress?.cleared && <Ionicons name="checkmark-circle" size={16} color={colors.correct} />}
         </View>
-        {progress?.cleared && <Ionicons name="checkmark-circle" size={18} color={colors.correct} />}
+        <Text style={styles.catCount}>
+          {level.sentences.length} 句
+          {progress?.cleared ? ` · 已通关 ★${progress.bestStars ?? 0}` : ''}
+        </Text>
       </View>
-      <View style={styles.levelActions}>
-        <Pressable style={[styles.actBtn, { backgroundColor: A }]} onPress={onChallenge}>
-          <Ionicons name="play" size={14} color={colors.white} />
-          <Text style={styles.actText}>{progress?.cleared ? '再战' : '开始闯关'}</Text>
-        </Pressable>
-        <Pressable style={[styles.actBtn, styles.actBrowse]} onPress={onBrowse}>
-          <Text style={[styles.actBrowseText, { color: A }]}>看句子</Text>
-        </Pressable>
-      </View>
-      {progress?.cleared && <StarRow stars={progress.bestStars ?? 0} size={13} />}
-    </View>
+      <Pressable
+        style={[styles.playBtn, { backgroundColor: progress?.cleared ? A + '14' : A }]}
+        onPress={onChallenge}
+        hitSlop={6}
+      >
+        <Ionicons name="play" size={15} color={progress?.cleared ? A : colors.white} />
+      </Pressable>
+      <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+    </Pressable>
   );
 }
 
@@ -645,13 +648,10 @@ const styles = StyleSheet.create({
   statLbl: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
 
   // level card
-  levelCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 14, gap: 10 },
-  levelHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  levelActions: { flexDirection: 'row', gap: 8 },
-  actBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, borderRadius: radius.md, paddingVertical: 9, flex: 1 },
-  actText: { color: colors.white, fontWeight: '700', fontSize: 13.5 },
-  actBrowse: { backgroundColor: A + '14', flex: 0 },
-  actBrowseText: { fontWeight: '700', fontSize: 13.5 },
+  levelCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: radius.lg, paddingVertical: 11, paddingHorizontal: 14 },
+  levelList: { gap: 8 },
+  levelTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  playBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   stars: { flexDirection: 'row', gap: 2 },
 
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.lg, paddingTop: 8, paddingBottom: 12 },

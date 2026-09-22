@@ -1,10 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { syncNow } from '../store';
 import { colors, radius, shadow } from '../theme';
+
+/**
+ * Cross-platform alert: RN's Alert is a no-op on web, so fall back to
+ * window.alert there. (Fixes silent failures like 409 on the PC frontend.)
+ */
+function notify(title: string, message: string): void {
+  if (Platform.OS === 'web') window.alert(`${title}\n${message}`);
+  else Alert.alert(title, message);
+}
 
 export function AccountPanel({ onSynced }: { onSynced?: () => void }) {
   const { user, loading, logout } = useAuth();
@@ -15,9 +24,9 @@ export function AccountPanel({ onSynced }: { onSynced?: () => void }) {
     try {
       const r = await syncNow(api);
       onSynced?.();
-      Alert.alert('同步完成', `上传 ${r.pushed} 条，下载 ${r.pulled} 条`);
+      notify('同步完成', `上传 ${r.pushed} 条，下载 ${r.pulled} 条`);
     } catch (e) {
-      Alert.alert('同步失败', String((e as Error).message));
+      notify('同步失败', String((e as Error).message));
     } finally {
       setSyncing(false);
     }
@@ -66,14 +75,23 @@ function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function switchMode() {
+    setMode(mode === 'login' ? 'register' : 'login');
+    setError(null);
+  }
 
   async function submit() {
     setBusy(true);
+    setError(null);
     try {
       if (mode === 'register') await register(email, password);
       else await login(email, password);
     } catch (e) {
-      Alert.alert(mode === 'register' ? '注册失败' : '登录失败', String((e as Error).message));
+      const msg = (e as Error).message || '请求失败';
+      // Inline error works on both native and web (Alert is a no-op on web).
+      setError(mode === 'register' ? `注册失败：${msg}` : `登录失败：${msg}`);
     } finally {
       setBusy(false);
     }
@@ -105,7 +123,11 @@ function AuthForm() {
           {busy ? '请稍候…' : mode === 'login' ? '登录' : '注册'}
         </Text>
       </Pressable>
-      <Pressable onPress={() => setMode(mode === 'login' ? 'register' : 'login')} hitSlop={8}>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error && /already registered/i.test(error) ? (
+        <Text style={styles.errorHint}>该邮箱已注册过，请切回「登录」用原密码登录。</Text>
+      ) : null}
+      <Pressable onPress={switchMode} hitSlop={8}>
         <Text style={styles.switchText}>
           {mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}
         </Text>
@@ -151,5 +173,7 @@ const styles = StyleSheet.create({
   },
   primaryBtn: { backgroundColor: colors.accent, borderRadius: radius.md, paddingVertical: 13, alignItems: 'center' },
   primaryBtnText: { color: colors.white, fontWeight: '700', fontSize: 15 },
+  errorText: { color: '#C4473A', fontSize: 13, textAlign: 'center', marginTop: -2 },
+  errorHint: { color: colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: -6 },
   switchText: { color: colors.accent, textAlign: 'center', fontSize: 13, marginTop: 2 },
 });
