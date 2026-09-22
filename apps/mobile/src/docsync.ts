@@ -4,6 +4,7 @@ import { applyConversationDocs, collectConversationDocs } from './chat';
 import { applyRewardsDoc, collectRewardsDoc } from './rewards';
 import { applyWordbookDocs, collectWordbookDocs } from './wordbook';
 import { applyCourseDoc, collectCourseDoc } from './course';
+import { applyChallengeDoc, collectChallengeDoc } from './challenge';
 
 const WATERMARK = 'docsync:last:v1';
 
@@ -20,6 +21,7 @@ export async function syncDocs(api: ApiClient): Promise<{ pushed: number; pulled
     ...(await collectRewardsDoc(last)),
     ...(await collectWordbookDocs(last)),
     ...(await collectCourseDoc(last)),
+    ...(await collectChallengeDoc(last)),
   ];
   if (changes.length) await api.pushDocs(changes);
 
@@ -28,6 +30,7 @@ export async function syncDocs(api: ApiClient): Promise<{ pushed: number; pulled
   await applyRewardsDoc(docs.find((d) => d.collection === 'rewards'));
   await applyWordbookDocs(docs.filter((d) => d.collection === 'wordbook'));
   await applyCourseDoc(docs.find((d) => d.collection === 'course'));
+  await applyChallengeDoc(docs.find((d) => d.collection === 'challenge'));
 
   await AsyncStorage.setItem(WATERMARK, String(serverTime));
   return { pushed: changes.length, pulled: docs.length };
