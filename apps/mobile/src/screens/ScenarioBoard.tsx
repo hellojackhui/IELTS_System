@@ -146,7 +146,7 @@ export function ScenarioBoard() {
 
       {view.tab === 'browse' ? (
         <>
-          <View style={wide ? styles.grid : undefined}>
+          <View style={wide ? styles.grid : styles.cardList}>
             {SCENARIOS.map((s) => {
               const p = progress[`sc:${s.id}`];
               return (
@@ -166,7 +166,7 @@ export function ScenarioBoard() {
           </View>
 
           <Text style={styles.sectionLabel}>游戏台词 · 红警句子库</Text>
-          <View style={wide ? styles.grid : undefined}>
+          <View style={wide ? styles.grid : styles.cardList}>
             {RA_GAMES.map((g) => {
               const groups = raUnitsByFaction(g.game);
               const n = groups.reduce((sum, grp) => sum + grp.units.length, 0);
@@ -198,7 +198,7 @@ export function ScenarioBoard() {
           </View>
 
           <Text style={styles.sectionLabel}>影视台词 · 美剧</Text>
-          <View style={wide ? styles.grid : undefined}>
+          <View style={wide ? styles.grid : styles.cardList}>
             <Pressable
               style={[styles.catCard, shadow.soft, wide && styles.catCardWide]}
               onPress={() => setView({ k: 'hocEpisodes' })}
@@ -405,7 +405,7 @@ function RAUnits({
                 {grp.units.length} 单位 · {grp.sentenceCount} 句
               </Text>
             </View>
-            <View style={wide ? styles.grid : undefined}>
+            <View style={wide ? styles.grid : styles.cardList}>
               {grp.units.map((u) => (
                 <Pressable key={u.id} style={[styles.unitCard, shadow.soft, wide && styles.catCardWide]} onPress={() => onOpen(u)}>
                   <View style={[styles.unitBar, { backgroundColor: grp.color }]} />
@@ -492,7 +492,7 @@ function HocEpisodeList({ wide, onBack, onOpen, onQuotes }: { wide: boolean; onB
                   {eps.length} 集 · {formatCount(lines)} 句
                 </Text>
               </View>
-              <View style={wide ? styles.grid : undefined}>
+              <View style={wide ? styles.grid : styles.cardList}>
                 {eps.map((ep) => (
                   <Pressable key={ep.chapter} style={[styles.unitCard, shadow.soft, wide && styles.catCardWide]} onPress={() => onOpen(ep)}>
                     <View style={[styles.unitBar, { backgroundColor: HOC_ACCENT }]} />
@@ -650,6 +650,7 @@ const styles = StyleSheet.create({
   // level card
   levelCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.card, borderRadius: radius.lg, paddingVertical: 11, paddingHorizontal: 14 },
   levelList: { gap: 8 },
+  cardList: { gap: 10 },
   levelTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   playBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   stars: { flexDirection: 'row', gap: 2 },
