@@ -1,31 +1,31 @@
 import { Ionicons } from '@expo/vector-icons';
-import { WORD_COUNT, COURSE_CHAPTER_COUNT, COURSE_UNIT_COUNT, type QuizMode } from '@ielts/core';
+import { COURSE_CHAPTER_COUNT, COURSE_UNIT_COUNT } from '@ielts/core';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { ActivityCard, ScreenHeader, StatRow } from '../components/ui';
+import { CourseChapters } from './Course';
 import { getRewards, type Rewards } from '../rewards';
 import { getStats, type Stats } from '../store';
 import { wordbookCount } from '../wordbook';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, WIDE_BREAKPOINT } from '../theme';
 
 const A = boards.memory.accent;
 
 export function MemoryBoard({
-  onStart,
   onReview,
   onOpenWordbook,
-  onOpenCourse,
+  onOpenUnit,
   reloadToken,
 }: {
-  onStart: (mode: QuizMode) => void;
   onReview: () => void;
   onOpenWordbook: () => void;
-  onOpenCourse: () => void;
+  onOpenUnit: (unitId: string) => void;
   reloadToken: number;
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [rewards, setRewards] = useState<Rewards | null>(null);
   const [wbCount, setWbCount] = useState(0);
+  const wide = useWindowDimensions().width >= WIDE_BREAKPOINT;
   const refresh = useCallback(() => {
     getStats().then(setStats);
     getRewards().then(setRewards);
@@ -39,8 +39,8 @@ export function MemoryBoard({
   const due = stats?.due ?? 0;
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <ScreenHeader title="单词记忆" subtitle={`${WORD_COUNT.toLocaleString()} 词 · 间隔重复`} accent={A} />
+    <ScrollView contentContainerStyle={[styles.container, wide && styles.containerWide]} showsVerticalScrollIndicator={false}>
+      <ScreenHeader title="单词" subtitle={`真经精选 · ${COURSE_CHAPTER_COUNT} 章 · ${COURSE_UNIT_COUNT} 单元`} accent={A} />
 
       <View style={[styles.rewardBar, shadow.soft]}>
         <View style={styles.rewardItem}>
@@ -73,30 +73,6 @@ export function MemoryBoard({
         badge={due > 0 ? String(due) : undefined}
       />
 
-      <Text style={styles.sectionLabel}>词汇课程</Text>
-      <ActivityCard
-        icon="library-outline"
-        title="真经精选 · 分章学练"
-        desc={`${COURSE_CHAPTER_COUNT} 章 · ${COURSE_UNIT_COUNT} 单元 · 先学后测（选择 / 听写 / 文章填空）`}
-        accent={A}
-        onPress={onOpenCourse}
-      />
-
-      <Text style={styles.sectionLabel}>练习方式</Text>
-      <ActivityCard
-        icon="create-outline"
-        title="单词拼写"
-        desc="看中文释义，拼写出英文单词"
-        accent={A}
-        onPress={() => onStart('spelling')}
-      />
-      <ActivityCard
-        icon="options-outline"
-        title="语境选词"
-        desc="看英文例句，选出空格处正确的词"
-        accent={A}
-        onPress={() => onStart('choice')}
-      />
       <ActivityCard
         icon="bookmark-outline"
         title="生词本"
@@ -105,12 +81,16 @@ export function MemoryBoard({
         onPress={onOpenWordbook}
         badge={wbCount > 0 ? String(wbCount) : undefined}
       />
+
+      <Text style={styles.sectionLabel}>词汇课程</Text>
+      <CourseChapters onOpenUnit={onOpenUnit} reloadToken={reloadToken} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: space.lg, paddingBottom: 32, gap: 12, maxWidth: CONTENT_MAX_WIDTH, width: '100%', alignSelf: 'center' },
+  container: { padding: space.lg, paddingBottom: 40, gap: 12, maxWidth: CONTENT_MAX_WIDTH, width: '100%', alignSelf: 'center' },
+  containerWide: { maxWidth: 1000 },
   rewardBar: {
     flexDirection: 'row',
     alignItems: 'center',

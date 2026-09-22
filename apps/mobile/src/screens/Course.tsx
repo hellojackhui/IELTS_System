@@ -15,7 +15,9 @@ import * as Speech from 'expo-speech';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { recordActivity } from '../rewards';
-import { recordAnswer } from '../store';
+import { recordAnswer, syncNow } from '../store';
+import { api } from '../api';
+import { useAuth } from '../auth';
 import { getCourseProgress, markUnitLearned, recordUnitTest } from '../course';
 import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, WIDE_BREAKPOINT } from '../theme';
 
@@ -30,60 +32,53 @@ function speak(word: string, rate = 0.85) {
   Speech.speak(word, { language: 'en-US', rate });
 }
 
-type CourseView =
-  | { k: 'chapters' }
-  | { k: 'unit'; unitId: string }
-  | { k: 'learn'; unitId: string }
-  | { k: 'test'; unitId: string };
-
-export function Course({ onExit }: { onExit: () => void }) {
-  const [view, setView] = useState<CourseView>({ k: 'chapters' });
+/** The chapter/unit list, rendered inline inside the 单词 tab (no header/scroll of its own). */
+export function CourseChapters({ onOpenUnit, reloadToken }: { onOpenUnit: (unitId: string) => void; reloadToken?: number }) {
   const [progress, setProgress] = useState<Record<string, { learned?: boolean; testBest?: number }>>({});
-  const refresh = () => getCourseProgress().then(setProgress);
   useEffect(() => {
-    refresh();
-  }, [view]);
+    getCourseProgress().then(setProgress);
+  }, [reloadToken]);
+  return <Chapters progress={progress} onOpenUnit={onOpenUnit} />;
+}
 
-  if (view.k === 'chapters') {
-    return <Chapters progress={progress} onExit={onExit} onOpenUnit={(unitId) => setView({ k: 'unit', unitId })} />;
-  }
-  const unit = getUnit(view.unitId)!;
-  if (view.k === 'unit') {
+/** One unit's flow (home → learn → test), shown as a full-screen overlay. */
+export function CourseUnitFlow({ unitId, onExit }: { unitId: string; onExit: () => void }) {
+  const [view, setView] = useState<'unit' | 'learn' | 'test'>('unit');
+  const [progress, setProgress] = useState<Record<string, { learned?: boolean; testBest?: number }>>({});
+  useEffect(() => {
+    getCourseProgress().then(setProgress);
+  }, [view]);
+  const unit = getUnit(unitId)!;
+  if (view === 'unit') {
     return (
       <UnitHome
         unit={unit}
         prog={progress[unit.id]}
-        onBack={() => setView({ k: 'chapters' })}
-        onLearn={() => setView({ k: 'learn', unitId: unit.id })}
-        onTest={() => setView({ k: 'test', unitId: unit.id })}
+        onBack={onExit}
+        onLearn={() => setView('learn')}
+        onTest={() => setView('test')}
       />
     );
   }
-  if (view.k === 'learn') {
-    return <Learn unit={unit} onDone={() => setView({ k: 'unit', unitId: unit.id })} />;
-  }
-  return <UnitTest unit={unit} onDone={() => setView({ k: 'unit', unitId: unit.id })} />;
+  if (view === 'learn') return <Learn unit={unit} onDone={() => setView('unit')} />;
+  return <UnitTest unit={unit} onDone={() => setView('unit')} />;
 }
 
 /* ----------------------------- chapters list ----------------------------- */
 
 function Chapters({
   progress,
-  onExit,
   onOpenUnit,
 }: {
   progress: Record<string, { learned?: boolean; testBest?: number }>;
-  onExit: () => void;
   onOpenUnit: (unitId: string) => void;
 }) {
   const [open, setOpen] = useState<number | null>(1);
   const wide = useWide();
   return (
-    <View style={[styles.flex, wide && styles.flexWide]}>
-      <TopBar title="词汇课程" onBack={onExit} />
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <Text style={styles.lead}>雅思词汇真经 · {COURSE_CHAPTERS.length} 章 · 先学后测</Text>
-        {COURSE_CHAPTERS.map((ch) => {
+    <View style={styles.inlineList}>
+      <Text style={styles.lead}>雅思词汇真经 · {COURSE_CHAPTERS.length} 章 · 先学后测</Text>
+      {COURSE_CHAPTERS.map((ch) => {
           const units = chapterUnits(ch.chapter);
           const done = units.filter((u) => (progress[u.id]?.testBest ?? 0) >= 60).length;
           const expanded = open === ch.chapter;
@@ -130,7 +125,6 @@ function Chapters({
             </View>
           );
         })}
-      </ScrollView>
     </View>
   );
 }
@@ -298,6 +292,7 @@ function UnitTest({ unit, onDone }: { unit: CourseUnit; onDone: () => void }) {
     return out;
   }, [unit.id]);
 
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>('choice');
   const [correct, setCorrect] = useState(0);
   const [total, setTotal] = useState(0);
@@ -318,7 +313,9 @@ function UnitTest({ unit, onDone }: { unit: CourseUnit; onDone: () => void }) {
   useEffect(() => {
     if (phase === 'result') {
       const pct = total ? Math.round((correct / total) * 100) : 0;
-      recordUnitTest(unit.id, pct);
+      recordUnitTest(unit.id, pct).then(() => {
+        if (user) syncNow(api).catch(() => {});
+      });
     }
   }, [phase]);
 
@@ -710,6 +707,7 @@ function TopBar({ title, onBack }: { title: string; onBack: () => void }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
+  inlineList: { gap: 12 },
   flexWide: { maxWidth: 1000 },
   unitListWide: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24 },
   unitRowWide: { width: '46%', borderTopWidth: 0, paddingVertical: 9 },
