@@ -120,6 +120,14 @@ EOF
               # The Jenkins agent image has no node/npm, but the freshly built
               # server image does — run the export+publish inside it. Fall back
               # to the official node image if the server image is missing.
+              #
+              # Jenkins itself runs in a container, so docker -v resolves
+              # against the HOST filesystem: translate /var/jenkins_home/...
+              # to its host-side source via /proc/mounts before mounting.
+              JH_SRC="$(awk '$2=="/var/jenkins_home" {print $1; exit}' /proc/mounts)"
+              [ -n "$JH_SRC" ] || JH_SRC="/var/lib/docker/volumes/jenkins_home/_data"
+              HOSTWS="$JH_SRC/workspace/$(basename "$WORKSPACE")"
+              echo "host workspace: $HOSTWS"
               OTAMSG="$(git log -1 --pretty=%s)"
               IMG="ielts-server:latest"
               if ! docker image inspect "$IMG" >/dev/null 2>&1; then
@@ -127,7 +135,7 @@ EOF
                 IMG="node:22"
               fi
               docker run --rm \\
-                -v "$WORKSPACE":/w -w /w \\
+                -v "$HOSTWS":/w -w /w \\
                 -e EXPO_TOKEN -e OTAMSG -e EAS_NO_VCS=1 \\
                 -e HOME=/tmp -e npm_config_cache=/tmp/.npm \\
                 "$IMG" \\
