@@ -14,6 +14,8 @@
 // One-time setup (see the checklist in the chat / docs/ci-jenkins.md):
 //   - Jenkins user can run docker (in the `docker` group)
 //   - Jenkins credentials (Secret text): ielts-jwt-secret, ielts-ai-api-key
+//   - Jenkins credentials (Secret text): expo-token  (expo.dev Access Token,
+//     for publishing JS OTA updates to EAS Update)
 //   - Pipeline job: "Pipeline script from SCM" -> this repo -> branch main
 //     -> Script Path: Jenkinsfile, and tick
 //     "GitHub hook trigger for GITScm polling"
@@ -94,6 +96,30 @@ EOF
           $COMPOSE logs --tail=80 server || true
           exit 1
         '''
+      }
+    }
+
+    // JS-only OTA update for the mobile app via EAS Update. Devices with the
+    // expo-updates-enabled build pull this on next launch; native changes
+    // (runtimeVersion bump) still need a manual reinstall.
+    stage('OTA update (mobile)') {
+      when { changeset 'apps/mobile/**' }
+      steps {
+        // A missing/expired expo-token must never fail the main deploy.
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+          withCredentials([string(credentialsId: 'expo-token', variable: 'EXPO_TOKEN')]) {
+            sh '''
+              if [ ! -f apps/mobile/.eas/projects.json ]; then
+                echo "EAS project not initialized (no .eas/projects.json) — skipping OTA publish."
+                exit 0
+              fi
+              npm ci
+              cd apps/mobile
+              npx --yes eas-cli@latest update --branch production --non-interactive \\
+                --message "$(git log -1 --pretty=%s)"
+            '''
+          }
+        }
       }
     }
   }

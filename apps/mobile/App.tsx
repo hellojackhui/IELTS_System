@@ -21,6 +21,7 @@ import { ListeningExam } from './src/screens/ListeningExam';
 import { WritingExam } from './src/screens/WritingExam';
 import { Wordbook } from './src/screens/Wordbook';
 import { boards, colors, useNative, WIDE_BREAKPOINT } from './src/theme';
+import { checkForOtaUpdate } from './src/updates';
 
 // On web, make the mount point fill the viewport so flex:1 layouts expand.
 // Done at module load (before first render) to avoid a corner-flash on launch.
@@ -56,6 +57,11 @@ export default function App() {
 
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
+
+  // OTA: check for a JS update once per launch (native release builds only).
+  useEffect(() => {
+    checkForOtaUpdate();
+  }, []);
 
   // All boards stay mounted so switching preserves state (chat, scroll position).
   const panes = (
