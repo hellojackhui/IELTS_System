@@ -1,6 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
   buildChallengeLevels,
+  GTA5_LINE_COUNT,
+  GTA5_SCENE_COUNT,
+  GTA5_SCENES,
   HOC_EPISODES,
   HOC_QUOTES,
   hocLineCount,
@@ -13,6 +16,7 @@ import {
   SCENARIOS,
   unitFaction,
   type ChallengeLevel,
+  type GTA5Scene,
   type HocEpisode,
   type HocQuote,
   type RAGame,
@@ -89,6 +93,8 @@ type SBView =
   | { k: 'hocEpisodes' }
   | { k: 'hocEpisode'; ep: HocEpisode }
   | { k: 'hocQuotes' }
+  | { k: 'gta5' }
+  | { k: 'gta5Scene'; scene: GTA5Scene }
   | { k: 'challengeFlow'; level: ChallengeLevel };
 
 export function ScenarioBoard() {
@@ -131,6 +137,9 @@ export function ScenarioBoard() {
   if (view.k === 'hocEpisode')
     return <HocEpisodeView ep={view.ep} wide={wide} onBack={() => setView({ k: 'hocEpisodes' })} />;
   if (view.k === 'hocQuotes') return <HocQuotesView wide={wide} onBack={() => setView({ k: 'hocEpisodes' })} />;
+  if (view.k === 'gta5')
+    return <Gta5List wide={wide} onBack={() => setView({ k: 'home', tab: 'browse' })} onOpen={(scene) => setView({ k: 'gta5Scene', scene })} />;
+  if (view.k === 'gta5Scene') return <Gta5SceneView scene={view.scene} wide={wide} onBack={() => setView({ k: 'gta5' })} />;
   if (view.k === 'challengeFlow')
     return (
       <ChallengeFlow
@@ -195,6 +204,25 @@ export function ScenarioBoard() {
                 </Pressable>
               );
             })}
+          </View>
+
+          <Text style={styles.sectionLabel}>游戏剧情 · GTA5</Text>
+          <View style={wide ? styles.grid : styles.cardList}>
+            <Pressable
+              style={[styles.catCard, shadow.soft, wide && styles.catCardWide]}
+              onPress={() => setView({ k: 'gta5' })}
+            >
+              <View style={styles.catIcon}>
+                <Ionicons name="film-outline" size={22} color={A} />
+              </View>
+              <View style={styles.flex}>
+                <Text style={styles.catTitle}>GTA5 · 洛圣都</Text>
+                <Text style={styles.catCount}>
+                  剧情台词 · {GTA5_SCENE_COUNT} 场 · {GTA5_LINE_COUNT} 句
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
           </View>
 
           <Text style={styles.sectionLabel}>影视台词 · 美剧</Text>
@@ -597,6 +625,69 @@ function QuoteCard({ q }: { q: HocQuote }) {
   );
 }
 
+function Gta5List({ wide, onBack, onOpen }: { wide: boolean; onBack: () => void; onOpen: (s: GTA5Scene) => void }) {
+  return (
+    <View style={styles.col}>
+      <TopBar title="GTA5 · 洛圣都" onBack={onBack} />
+      <ScrollView contentContainerStyle={[styles.container, wide && styles.containerWide]} showsVerticalScrollIndicator={false}>
+        <Text style={styles.quoteHint}>
+          十场主线剧情的台词精学：每场含中文剧情梳理 + 各角色台词（英 / 中 / 用法点），点英文可朗读。选段为学习用途，保留自然口语。
+        </Text>
+        <View style={wide ? styles.grid : styles.cardList}>
+          {GTA5_SCENES.map((s, i) => (
+            <Pressable key={s.id} style={[styles.unitCard, shadow.soft, wide && styles.catCardWide]} onPress={() => onOpen(s)}>
+              <View style={[styles.unitBar, { backgroundColor: A }]} />
+              <View style={styles.flex}>
+                <Text style={styles.unitName}>
+                  {i + 1}. {s.title}
+                </Text>
+                <Text style={styles.catCount} numberOfLines={1}>
+                  {s.mission} · {s.lines.length} 句
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function Gta5SceneView({ scene, wide, onBack }: { scene: GTA5Scene; wide: boolean; onBack: () => void }) {
+  return (
+    <View style={styles.col}>
+      <TopBar title={scene.title} onBack={onBack} />
+      <ScrollView contentContainerStyle={[styles.container, wide && styles.containerWide]} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, shadow.soft, { gap: 6 }]}>
+          <Text style={[styles.groupLabel, { marginBottom: 0 }]}>{scene.mission}</Text>
+          <Text style={styles.gtaSummary}>{scene.summary}</Text>
+        </View>
+        {scene.lines.map((l, i) => (
+          <Pressable key={i} style={[styles.sCard, shadow.soft]} onPress={() => speak(l.en)}>
+            <View style={styles.sTop}>
+              <View style={styles.flex}>
+                <Text style={[styles.gtaWho, { color: A }]}>{l.who}</Text>
+                <Text style={styles.sEn}>{l.en}</Text>
+              </View>
+              <View style={[styles.speak, { backgroundColor: A + '15' }]}>
+                <Ionicons name="volume-high" size={18} color={A} />
+              </View>
+            </View>
+            <Text style={styles.sZh}>{l.zh}</Text>
+            {!!l.tip && (
+              <View style={styles.tipRow}>
+                <Ionicons name="bulb-outline" size={13} color={A} />
+                <Text style={styles.tip}>{l.tip}</Text>
+              </View>
+            )}
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   col: { flex: 1, width: '100%', maxWidth: 1000, alignSelf: 'center' },
@@ -665,6 +756,8 @@ const styles = StyleSheet.create({
   sEn: { flex: 1, fontSize: 17, fontWeight: '600', color: colors.text, lineHeight: 24 },
   speak: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   sZh: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  gtaWho: { fontSize: 12, fontWeight: '800', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
+  gtaSummary: { fontSize: 13.5, color: colors.textSecondary, lineHeight: 21 },
   tipRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   tip: { flex: 1, fontSize: 12.5, color: colors.textMuted, lineHeight: 18 },
 

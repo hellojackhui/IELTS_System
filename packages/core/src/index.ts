@@ -18,5 +18,6 @@ export * from './data/redalert-sentences';
 export * from './data/redalert-factions';
 export * from './data/hoc-scripts';
 export * from './data/hoc-quotes';
+export * from './data/gta5';
 
 export * from './api';
