@@ -31,6 +31,15 @@
     },
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c9fcf35d-0da6-47d2-9b94-0631661af8cf"
+      }
+    },
+    "owner": "hellojackhuis-team",
+    "updates": {
+      "url": "https://u.expo.dev/c9fcf35d-0da6-47d2-9b94-0631661af8cf"
     }
   }
 }
