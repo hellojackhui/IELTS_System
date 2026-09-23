@@ -122,11 +122,14 @@ EOF
               # to the official node image if the server image is missing.
               #
               # Jenkins itself runs in a container, so docker -v resolves
-              # against the HOST filesystem: translate /var/jenkins_home/...
-              # to its host-side source via /proc/mounts before mounting.
-              JH_SRC="$(awk '$2=="/var/jenkins_home" {print $1; exit}' /proc/mounts)"
-              [ -n "$JH_SRC" ] || JH_SRC="/var/lib/docker/volumes/jenkins_home/_data"
-              HOSTWS="$JH_SRC/workspace/$(basename "$WORKSPACE")"
+              # against the HOST filesystem. /proc/mounts only shows the
+              # backing device (e.g. /dev/vda3) — ask Docker's own mount
+              # records for the real host-side source instead ($HOSTNAME is
+              # the Jenkins container ID).
+              HOSTJH="$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/var/jenkins_home"}}{{.Source}}{{end}}{{end}}' "$HOSTNAME")"
+              [ -n "$HOSTJH" ] || HOSTJH="/var/lib/docker/volumes/jenkins_home/_data"
+              echo "host jenkins_home: $HOSTJH"
+              HOSTWS="$HOSTJH/workspace/$(basename "$WORKSPACE")"
               echo "host workspace: $HOSTWS"
               OTAMSG="$(git log -1 --pretty=%s)"
               IMG="ielts-server:latest"

@@ -9,7 +9,7 @@ import { Alert, Platform } from 'react-native';
  *
  * Pipeline: git push -> Jenkins -> `eas update` (runs inside the server image,
  * which provides node/npm that the bare Jenkins agent lacks; the workspace is
- * bind-mounted via its host-side path).
+ * bind-mounted via the host-side path reported by `docker inspect`).
  */
 export function updatesEnabled(): boolean {
   return Platform.OS !== 'web' && !__DEV__;
