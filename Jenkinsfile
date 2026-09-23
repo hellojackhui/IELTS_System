@@ -27,7 +27,7 @@ pipeline {
   options {
     timestamps()
     disableConcurrentBuilds()          // never let two deploys race
-    timeout(time: 20, unit: 'MINUTES')
+    timeout(time: 30, unit: 'MINUTES')
     buildDiscarder(logRotator(numToKeepStr: '20'))
   }
 
@@ -117,10 +117,21 @@ EOF
                 echo "EAS project not initialized (no .eas/projects.json) — skipping OTA publish."
                 exit 0
               fi
-              npm ci
-              cd apps/mobile
-              npx --yes eas-cli@latest update --branch production --non-interactive \\
-                --message "$(git log -1 --pretty=%s)"
+              # The Jenkins agent image has no node/npm, but the freshly built
+              # server image does — run the export+publish inside it. Fall back
+              # to the official node image if the server image is missing.
+              OTAMSG="$(git log -1 --pretty=%s)"
+              IMG="ielts-server:latest"
+              if ! docker image inspect "$IMG" >/dev/null 2>&1; then
+                echo "$IMG not found locally — falling back to node:22 pull"
+                IMG="node:22"
+              fi
+              docker run --rm \\
+                -v "$WORKSPACE":/w -w /w \\
+                -e EXPO_TOKEN -e OTAMSG -e EAS_NO_VCS=1 \\
+                -e HOME=/tmp -e npm_config_cache=/tmp/.npm \\
+                "$IMG" \\
+                sh -c 'npm ci --no-audit --no-fund --loglevel=error && cd apps/mobile && npx --yes eas-cli@latest update --branch production --non-interactive --message "$OTAMSG"'
             '''
           }
         }

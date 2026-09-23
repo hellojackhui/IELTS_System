@@ -6,6 +6,9 @@ import { Alert, Platform } from 'react-native';
  *
  * Enabled only on native release builds: web deploys through Jenkins docker,
  * and dev mode talks to the local Metro bundler instead.
+ *
+ * Pipeline: git push -> Jenkins -> `eas update` (runs inside the server image,
+ * which provides node/npm that the bare Jenkins agent lacks).
  */
 export function updatesEnabled(): boolean {
   return Platform.OS !== 'web' && !__DEV__;
