@@ -39,7 +39,10 @@
     },
     "owner": "hellojackhuis-team",
     "updates": {
-      "url": "https://u.expo.dev/c9fcf35d-0da6-47d2-9b94-0631661af8cf"
+      "url": "https://u.expo.dev/c9fcf35d-0da6-47d2-9b94-0631661af8cf",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }
