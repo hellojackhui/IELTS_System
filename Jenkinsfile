@@ -49,7 +49,11 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        // GitHub connectivity from the ECS is flaky; retry instead of failing
+        // the whole build on a transient timeout (pollSCM re-triggers anyway).
+        retry(3) {
+          checkout scm
+        }
       }
     }
 
