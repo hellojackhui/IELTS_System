@@ -144,7 +144,13 @@ EOF
                 -e EXPO_TOKEN -e OTAMSG -e EAS_NO_VCS=1 \\
                 -e HOME=/tmp -e npm_config_cache=/tmp/.npm \\
                 "$IMG" \\
-                sh -c 'npm ci --no-audit --no-fund --loglevel=error && cd apps/mobile && npx --yes eas-cli@latest update --branch production --non-interactive --message "$OTAMSG"'
+                sh -c '
+                  set -e
+                  echo "OTA publish: branch=production msg=[$OTAMSG] token_len=${#EXPO_TOKEN}"
+                  npm ci --no-audit --no-fund --loglevel=error
+                  cd apps/mobile
+                  npx --yes eas-cli@latest update --branch production --non-interactive --message "$OTAMSG"
+                '
             '''
           }
         }

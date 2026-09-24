@@ -10,6 +10,10 @@ import { Alert, Platform } from 'react-native';
  * Pipeline: git push -> Jenkins -> `eas update` (runs inside the server image,
  * which provides node/npm that the bare Jenkins agent lacks; env vars must be
  * `export`ed for `docker run -e` to see them).
+ *
+ * Server side: the `production` channel must exist on expo.dev and the app
+ * must send `expo-channel-name` (see app.json updates.requestHeaders), or the
+ * manifest endpoint replies 400/404 and every check silently no-ops.
  */
 export function updatesEnabled(): boolean {
   return Platform.OS !== 'web' && !__DEV__;
