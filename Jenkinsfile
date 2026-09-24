@@ -131,7 +131,9 @@ EOF
               echo "host jenkins_home: $HOSTJH"
               HOSTWS="$HOSTJH/workspace/$(basename "$WORKSPACE")"
               echo "host workspace: $HOSTWS"
-              OTAMSG="$(git log -1 --pretty=%s)"
+              # export is required: `docker run -e VAR` reads the docker
+              # client's exported env, not local shell variables.
+              export OTAMSG="$(git log -1 --pretty=%s)"
               IMG="ielts-server:latest"
               if ! docker image inspect "$IMG" >/dev/null 2>&1; then
                 echo "$IMG not found locally — falling back to node:22 pull"

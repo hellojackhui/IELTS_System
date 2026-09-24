@@ -8,8 +8,8 @@ import { Alert, Platform } from 'react-native';
  * and dev mode talks to the local Metro bundler instead.
  *
  * Pipeline: git push -> Jenkins -> `eas update` (runs inside the server image,
- * which provides node/npm that the bare Jenkins agent lacks; the workspace is
- * bind-mounted via the host-side path reported by `docker inspect`).
+ * which provides node/npm that the bare Jenkins agent lacks; env vars must be
+ * `export`ed for `docker run -e` to see them).
  */
 export function updatesEnabled(): boolean {
   return Platform.OS !== 'web' && !__DEV__;
