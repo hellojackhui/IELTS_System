@@ -107,7 +107,15 @@ EOF
     // expo-updates-enabled build pull this on next launch; native changes
     // (runtimeVersion bump) still need a manual reinstall.
     stage('OTA update (mobile)') {
-      when { changeset 'apps/mobile/**' }
+      // core is bundled into the app too, and Jenkinsfile changes should be
+      // verified — any of them can break the OTA pipeline.
+      when {
+        anyOf {
+          changeset 'apps/mobile/**'
+          changeset 'packages/core/**'
+          changeset 'Jenkinsfile'
+        }
+      }
       steps {
         // A missing/expired expo-token must never fail the main deploy.
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -141,13 +149,15 @@ EOF
               fi
               docker run --rm \\
                 -v "$HOSTWS":/w -w /w \\
+                -v ielts-npm-cache:/npmcache \\
                 -e EXPO_TOKEN -e OTAMSG -e EAS_NO_VCS=1 \\
-                -e HOME=/tmp -e npm_config_cache=/tmp/.npm \\
+                -e HOME=/npmcache -e npm_config_cache=/npmcache \\
                 "$IMG" \\
                 sh -c '
                   set -e
                   echo "OTA publish: branch=production msg=[$OTAMSG] token_len=${#EXPO_TOKEN}"
                   npm ci --no-audit --no-fund --loglevel=error
+                  npm run build:core
                   cd apps/mobile
                   npx --yes eas-cli@latest update --branch production --non-interactive --message "$OTAMSG"
                 '
