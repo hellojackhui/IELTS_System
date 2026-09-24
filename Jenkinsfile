@@ -156,7 +156,10 @@ EOF
                 sh -c '
                   set -e
                   echo "OTA publish: branch=production msg=[$OTAMSG] token_len=${#EXPO_TOKEN}"
-                  npm ci --no-audit --no-fund --loglevel=error
+                  # --ignore-scripts: the runtime image has no python/make/g++,
+                  # and better-sqlite3 (server-only native dep) would fail to
+                  # compile. Nothing here needs a native build to bundle JS.
+                  npm ci --ignore-scripts --no-audit --no-fund --loglevel=error
                   npm run build:core
                   cd apps/mobile
                   npx --yes eas-cli@latest update --branch production --non-interactive --message "$OTAMSG"
