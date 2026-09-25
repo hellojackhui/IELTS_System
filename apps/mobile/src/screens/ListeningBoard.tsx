@@ -1,8 +1,8 @@
 import type { QuizMode } from '@ielts/core';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ActivityCard, Card, ScreenHeader } from '../components/ui';
-import { boards, colors, CONTENT_MAX_WIDTH, space } from '../theme';
+import { ActivityCard, Card, CardGrid, ScreenHeader } from '../components/ui';
+import { boards, colors, CONTENT_MAX_WIDTH, space, useWide, WIDE_CONTENT_MAX } from '../theme';
 
 const A = boards.listening.accent;
 
@@ -13,25 +13,28 @@ export function ListeningBoard({
   onStart: (mode: QuizMode) => void;
   onStartExam: (section: 1 | 4) => void;
 }) {
+  const wide = useWide();
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={[styles.container, wide && styles.containerWide]} showsVerticalScrollIndicator={false}>
       <ScreenHeader title="听力" subtitle="听音辨词，也练场景听力理解" accent={A} />
 
       <Text style={styles.sectionLabel}>听力理解</Text>
-      <ActivityCard
-        icon="ear-outline"
-        title="场景对话"
-        desc="AI 生成日常对话，边听边做笔记补全（雅思 Section 1 风格）"
-        accent={A}
-        onPress={() => onStartExam(1)}
-      />
-      <ActivityCard
-        icon="school-outline"
-        title="学术讲座"
-        desc="AI 生成学术独白讲座，边听边做摘要补全（雅思 Section 4 风格）"
-        accent={A}
-        onPress={() => onStartExam(4)}
-      />
+      <CardGrid wide={wide}>
+        <ActivityCard
+          icon="ear-outline"
+          title="场景对话"
+          desc="AI 生成日常对话，边听边做笔记补全（雅思 Section 1 风格）"
+          accent={A}
+          onPress={() => onStartExam(1)}
+        />
+        <ActivityCard
+          icon="school-outline"
+          title="学术讲座"
+          desc="AI 生成学术独白讲座，边听边做摘要补全（雅思 Section 4 风格）"
+          accent={A}
+          onPress={() => onStartExam(4)}
+        />
+      </CardGrid>
 
       <Text style={styles.sectionLabel}>练习方式</Text>
       <ActivityCard
@@ -54,6 +57,7 @@ export function ListeningBoard({
 
 const styles = StyleSheet.create({
   container: { padding: space.lg, paddingBottom: 32, gap: 12, maxWidth: CONTENT_MAX_WIDTH, width: '100%', alignSelf: 'center' },
+  containerWide: { maxWidth: WIDE_CONTENT_MAX },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '700',

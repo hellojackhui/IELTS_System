@@ -13,7 +13,8 @@ import {
   View,
 } from 'react-native';
 import { checkListening, fetchListening, type Listening, type ListeningSection } from '../listening';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { CardGrid } from '../components/ui';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, useWide, WIDE_CONTENT_MAX } from '../theme';
 
 const A = boards.listening.accent;
 
@@ -36,6 +37,7 @@ export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; sec
       .catch((e) => setError(String((e as Error).message)));
   }
   useEffect(load, []);
+  const wide = useWide();
 
   useEffect(() => {
     return () => {
@@ -105,7 +107,7 @@ export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; sec
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={40}>
-      <View style={styles.col}>
+      <View style={[styles.col, wide && styles.colWide]}>
         <View style={styles.topBar}>
           <Pressable onPress={onExit} hitSlop={12} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={22} color={A} />
@@ -138,6 +140,7 @@ export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; sec
 
           {/* questions */}
           <Text style={styles.sectionLabel}>笔记补全（每空 1–3 词）</Text>
+          <CardGrid wide={wide}>
           {data.questions.map((q, i) => {
             const ok = revealed && checkListening(answers[i] ?? '', q.answer);
             const bad = revealed && !ok;
@@ -172,6 +175,7 @@ export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; sec
               </View>
             );
           })}
+          </CardGrid>
 
           {!revealed ? (
             <Pressable style={[styles.submit, { backgroundColor: A }]} onPress={() => { stop(); setRevealed(true); }}>
@@ -217,6 +221,7 @@ export function ListeningExam({ onExit, section = 1 }: { onExit: () => void; sec
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   col: { flex: 1, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
+  colWide: { maxWidth: WIDE_CONTENT_MAX },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   muted: { color: colors.textMuted, fontSize: 14 },
   errRow: { flexDirection: 'row', gap: 12, marginTop: 20 },

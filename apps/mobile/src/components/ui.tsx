@@ -87,6 +87,33 @@ export function Card({ children, style }: { children: React.ReactNode; style?: V
   return <View style={[styles.plainCard, shadow.card, style]}>{children}</View>;
 }
 
+/**
+ * Lays a list of cards in one column on phones and two columns on wide
+ * (PC / iPad) screens, so boards fill the extra width instead of floating
+ * as a narrow strip. Each child fills its cell — no width prop needed.
+ */
+export function CardGrid({
+  wide,
+  children,
+  gap = 12,
+}: {
+  wide: boolean;
+  children: React.ReactNode;
+  gap?: number;
+}) {
+  const items = React.Children.toArray(children);
+  if (!wide) return <View style={{ gap }}>{items}</View>;
+  return (
+    <View style={[styles.grid, { gap }]}>
+      {items.map((child, i) => (
+        <View key={i} style={styles.gridCell}>
+          {child}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'flex-start', paddingTop: space.sm, paddingBottom: space.lg },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -119,4 +146,6 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, fontWeight: '800', color: colors.text },
   statLabel: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   plainCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 18 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  gridCell: { width: '48.5%' },
 });

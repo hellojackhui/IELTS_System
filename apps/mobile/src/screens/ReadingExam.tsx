@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { fetchReading, TFNG_OPTIONS, type Reading, type ReadingQuestion } from '../reading';
 import { addWord, loadWordbook, removeWord } from '../wordbook';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, useWide, WIDE_CONTENT_MAX } from '../theme';
 
 const A = boards.exam.accent;
 
@@ -18,6 +18,7 @@ export function ReadingExam({ genre, onExit }: { genre: string; onExit: () => vo
   const [marked, setMarked] = useState<Set<string>>(new Set());
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [revealed, setRevealed] = useState(false);
+  const wide = useWide();
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +85,7 @@ export function ReadingExam({ genre, onExit }: { genre: string; onExit: () => vo
 
   return (
     <View style={styles.flex}>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, wide && styles.wideMax]}>
         <Pressable onPress={onExit} hitSlop={12} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={A} />
           <Text style={[styles.exit, { color: A }]}>返回</Text>
@@ -93,44 +94,52 @@ export function ReadingExam({ genre, onExit }: { genre: string; onExit: () => vo
         <Text style={styles.score}>{revealed ? `${score}/${reading.questions.length}` : ''}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.body, wide && styles.wideMax]} showsVerticalScrollIndicator={false}>
         <View style={[styles.genreBadge, { backgroundColor: A + '18' }]}>
           <Text style={[styles.genreText, { color: A }]}>{reading.genreLabel}</Text>
         </View>
         <Text style={styles.title}>{reading.title}</Text>
         <Text style={styles.hint}>💡 读到不认识的词，点它一下即可加入「生词本」</Text>
 
-        <View style={[styles.card, shadow.soft]}>
-          <Passage text={reading.passage} marked={marked} onToggle={toggleWord} />
-        </View>
-
-        <Text style={styles.sectionLabel}>题目</Text>
-        {reading.questions.map((q, i) => (
-          <QuestionCard
-            key={i}
-            index={i}
-            q={q}
-            selected={answers[i]}
-            revealed={revealed}
-            onSelect={(opt) => !revealed && setAnswers((a) => ({ ...a, [i]: opt }))}
-          />
-        ))}
-
-        {!revealed ? (
-          <Pressable
-            style={[styles.btn, { backgroundColor: answeredAll ? A : colors.border, marginTop: 8 }]}
-            onPress={() => answeredAll && setRevealed(true)}
-            disabled={!answeredAll}
-          >
-            <Text style={styles.btnText}>{answeredAll ? '提交' : '答完全部题目后提交'}</Text>
-          </Pressable>
-        ) : (
-          <View style={styles.resultBtns}>
-            <Pressable style={[styles.btn, { backgroundColor: A, flex: 1 }]} onPress={onExit}>
-              <Text style={styles.btnText}>完成</Text>
-            </Pressable>
+        {/* Wide (PC): passage on the left, questions on the right — no scrolling
+            back and forth. Narrow: the same nodes stack in one column. */}
+        <View style={wide ? styles.cols : styles.stack}>
+          <View style={wide ? styles.colPassage : undefined}>
+            <View style={[styles.card, shadow.soft]}>
+              <Passage text={reading.passage} marked={marked} onToggle={toggleWord} />
+            </View>
           </View>
-        )}
+
+          <View style={[styles.colQuestions, wide && styles.colQuestionsWide]}>
+            <Text style={[styles.sectionLabel, wide && { marginTop: 0 }]}>题目</Text>
+            {reading.questions.map((q, i) => (
+              <QuestionCard
+                key={i}
+                index={i}
+                q={q}
+                selected={answers[i]}
+                revealed={revealed}
+                onSelect={(opt) => !revealed && setAnswers((a) => ({ ...a, [i]: opt }))}
+              />
+            ))}
+
+            {!revealed ? (
+              <Pressable
+                style={[styles.btn, { backgroundColor: answeredAll ? A : colors.border, marginTop: 8 }]}
+                onPress={() => answeredAll && setRevealed(true)}
+                disabled={!answeredAll}
+              >
+                <Text style={styles.btnText}>{answeredAll ? '提交' : '答完全部题目后提交'}</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.resultBtns}>
+                <Pressable style={[styles.btn, { backgroundColor: A, flex: 1 }]} onPress={onExit}>
+                  <Text style={styles.btnText}>完成</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -246,6 +255,12 @@ const styles = StyleSheet.create({
   topTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
   score: { fontSize: 15, fontWeight: '800', color: A, minWidth: 64, textAlign: 'right' },
   body: { padding: space.lg, paddingBottom: 40, gap: 12, maxWidth: CONTENT_MAX_WIDTH, width: '100%', alignSelf: 'center' },
+  wideMax: { maxWidth: WIDE_CONTENT_MAX },
+  stack: { gap: 12 },
+  cols: { flexDirection: 'row', gap: 20, alignItems: 'flex-start' },
+  colPassage: { flex: 1.15 },
+  colQuestions: { gap: 12 },
+  colQuestionsWide: { flex: 1 },
   genreBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
   genreText: { fontSize: 12, fontWeight: '700' },
   title: { fontSize: 21, fontWeight: '800', color: colors.text, lineHeight: 28 },

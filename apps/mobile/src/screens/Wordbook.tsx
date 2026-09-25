@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CardGrid } from '../components/ui';
 import { ensureDefinition, loadWordbook, removeWord, type WordbookEntry } from '../wordbook';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, useWide, WIDE_CONTENT_MAX } from '../theme';
 
 const A = boards.memory.accent;
 
@@ -15,6 +16,7 @@ function speak(word: string) {
 export function Wordbook({ onExit }: { onExit: () => void }) {
   const [list, setList] = useState<WordbookEntry[]>([]);
   const [mode, setMode] = useState<'list' | 'review'>('list');
+  const wide = useWide();
 
   useEffect(() => {
     loadWordbook().then((l) => setList([...l]));
@@ -31,7 +33,7 @@ export function Wordbook({ onExit }: { onExit: () => void }) {
 
   return (
     <View style={styles.flex}>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, wide && styles.wideMax]}>
         <Pressable onPress={onExit} hitSlop={12} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={A} />
           <Text style={[styles.exit, { color: A }]}>返回</Text>
@@ -55,10 +57,12 @@ export function Wordbook({ onExit }: { onExit: () => void }) {
           </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          {list.map((e) => (
-            <WordRow key={e.word} entry={e} onRemove={() => remove(e.word)} />
-          ))}
+        <ScrollView contentContainerStyle={[styles.body, wide && styles.wideMax]} showsVerticalScrollIndicator={false}>
+          <CardGrid wide={wide} gap={10}>
+            {list.map((e) => (
+              <WordRow key={e.word} entry={e} onRemove={() => remove(e.word)} />
+            ))}
+          </CardGrid>
         </ScrollView>
       )}
     </View>
@@ -210,6 +214,7 @@ function Review({ list, onExit }: { list: WordbookEntry[]; onExit: () => void })
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  wideMax: { maxWidth: WIDE_CONTENT_MAX },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   muted: { color: colors.textMuted, fontSize: 14, lineHeight: 21 },
   topBar: {

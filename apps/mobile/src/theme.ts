@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 
 export const colors = {
   // Brand
@@ -42,6 +42,13 @@ export const boards = {
  * the widest phone is ~430pt, well below. */
 export const WIDE_BREAKPOINT = 720;
 export const CONTENT_MAX_WIDTH = 720;
+/** On wide (PC/iPad) screens, boards spread to this width and use 2-column grids. */
+export const WIDE_CONTENT_MAX = 1000;
+
+/** True on PC / iPad-portrait widths where the sidebar layout + wide content apply. */
+export function useWide(): boolean {
+  return useWindowDimensions().width >= WIDE_BREAKPOINT;
+}
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
 
