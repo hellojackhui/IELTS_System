@@ -19,7 +19,7 @@ import {
   saveConversation,
   type Conversation,
 } from '../chat';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, useWide, WIDE_TEXT_MAX } from '../theme';
 
 const A = boards.ai.accent;
 const SUGGESTIONS = ['帮我练一段咖啡店点单对话', '这句话语法对吗：I very like it', '用 "nevertheless" 造个句'];
@@ -34,6 +34,7 @@ export function AIBoard() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const bufRef = useRef('');
+  const wide = useWide();
 
   useEffect(() => {
     listConversations().then((list) => {
@@ -114,7 +115,7 @@ export function AIBoard() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <View style={styles.column}>
+      <View style={[styles.column, wide && styles.columnWide]}>
         <View style={styles.topBar}>
           <Pressable style={styles.iconBtn} onPress={() => setShowList(true)} hitSlop={8}>
             <Ionicons name="menu" size={22} color={colors.text} />
@@ -286,6 +287,7 @@ function ConversationDrawer({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   column: { flex: 1, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
+  columnWide: { maxWidth: WIDE_TEXT_MAX },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',

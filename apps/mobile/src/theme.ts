@@ -44,6 +44,9 @@ export const WIDE_BREAKPOINT = 720;
 export const CONTENT_MAX_WIDTH = 720;
 /** On wide (PC/iPad) screens, boards spread to this width and use 2-column grids. */
 export const WIDE_CONTENT_MAX = 1000;
+/** Moderate wide cap for text-focused screens (chat, essay editor) where a full
+ * 1000px line would hurt readability but 720 feels cramped on a big monitor. */
+export const WIDE_TEXT_MAX = 860;
 
 /** True on PC / iPad-portrait widths where the sidebar layout + wide content apply. */
 export function useWide(): boolean {

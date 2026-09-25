@@ -18,7 +18,7 @@ import {
   type WritingPrompt,
   type WritingScore,
 } from '../exam';
-import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space } from '../theme';
+import { boards, colors, CONTENT_MAX_WIDTH, radius, shadow, space, useWide, WIDE_TEXT_MAX } from '../theme';
 
 const A = boards.exam.accent;
 
@@ -36,6 +36,7 @@ export function WritingExam({ onExit }: { onExit: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [left, setLeft] = useState(prompt.minutes * 60);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wide = useWide();
 
   useEffect(() => {
     if (phase !== 'writing') return;
@@ -80,7 +81,7 @@ export function WritingExam({ onExit }: { onExit: () => void }) {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={40}>
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, wide && styles.wideMax]}>
         <Pressable onPress={onExit} hitSlop={12} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={A} />
           <Text style={[styles.exit, { color: A }]}>返回</Text>
@@ -89,7 +90,7 @@ export function WritingExam({ onExit }: { onExit: () => void }) {
         <Text style={[styles.timer, left <= 60 && { color: colors.wrong }]}>{fmt(left)}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.body, wide && styles.wideMax]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={[styles.promptCard, shadow.soft]}>
           <View style={styles.promptHead}>
             <Text style={[styles.promptType, { color: A }]}>{prompt.type}</Text>
@@ -149,6 +150,7 @@ function Report({
   onRetry: () => void;
   onExit: () => void;
 }) {
+  const wide = useWide();
   const crits = [
     { key: 'Task Response', c: score.tr },
     { key: 'Coherence & Cohesion', c: score.cc },
@@ -156,8 +158,8 @@ function Report({
     { key: 'Grammar', c: score.gra },
   ];
   return (
-    <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-      <View style={styles.topBar}>
+    <ScrollView contentContainerStyle={[styles.body, wide && styles.wideMax]} showsVerticalScrollIndicator={false}>
+      <View style={[styles.topBar, wide && styles.wideMax]}>
         <Pressable onPress={onExit} hitSlop={12} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={22} color={A} />
           <Text style={[styles.exit, { color: A }]}>返回</Text>
@@ -216,6 +218,7 @@ function Report({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   body: { padding: space.lg, paddingBottom: 40, gap: 12, maxWidth: CONTENT_MAX_WIDTH, width: '100%', alignSelf: 'center' },
+  wideMax: { maxWidth: WIDE_TEXT_MAX },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
